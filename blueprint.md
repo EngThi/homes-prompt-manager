@@ -5,27 +5,25 @@ A web-based command center for automating audiovisual content architecture. Desi
 
 ## Project History & Features
 ### Initial Setup
-- **Core UI:** Dark mode "Cyberpunk" interface built with vanilla HTML/CSS.
-- **Functionality:** Input field, simulated processing, output display.
+- **Core UI:** Dark mode "Cyberpunk" interface.
+- **Functionality:** Input field, simulated processing.
 
 ### V2.0: API Integration
 - **Status:** Complete.
-- **Features:**
-    - Real-time connection to Google Gemini API (`gemini-2.5-flash`).
-    - Secure API Key input.
-    - Error handling for API requests.
+- **Features:** Google Gemini API (`gemini-2.5-flash`) integration.
 
-### V3.0: Persistence & Refinement (Current)
-- **Goal:** Add local storage for scripts and refine the generation logic.
+### V3.0: Persistence & History
+- **Status:** Complete.
+- **Features:** Local storage history, sidebar layout, refined prompt.
+
+### V4.0: Audio Synthesis (Current)
+- **Goal:** Enable auditory review of scripts using native browser Text-to-Speech.
 - **New Features:**
-    - **History/Library:** A sidebar or section to view previously generated scripts (saved in `localStorage`).
-    - **Prompt Optimization:** Tweaking the system prompt for even better visual cues and retention mechanics.
-    - **UI/UX:** Better layout to accommodate the history list.
+    - **TTS Engine:** Utilize `window.speechSynthesis`.
+    - **Audio Controls:** Play/Stop buttons in the output interface.
+    - **Visualizer:** CSS-based animated audio waveform simulation during playback.
 
 ## Current Plan
-1.  **Modify UI:** Add a "History" sidebar to `index.html`.
-2.  **Update Logic:** 
-    - Save generated scripts to `localStorage`.
-    - Function to load clicked history items into the main view.
-    - Refine the system prompt in `main.js`.
-3.  **Style:** Update `style.css` to handle the new layout (grid/flex).
+1.  **Modify UI:** Add audio controls and visualizer container to `outputSection` in `index.html`.
+2.  **Update Logic:** Implement `playScript()` and `stopScript()` functions in `main.js`.
+3.  **Style:** Add CSS animations for the audio visualizer in `style.css`.

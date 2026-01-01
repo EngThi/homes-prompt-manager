@@ -50,8 +50,25 @@
                 <section class="card output-zone hidden" id="outputSection">
                     <div class="card-header">
                         <span>// OUTPUT_PROTOCOL_V1</span>
-                        <button id="copyBtn" class="small-btn">COPY CLIPBOARD</button>
+                        <div class="actions">
+                            <button id="copyBtn" class="small-btn">COPY</button>
+                        </div>
                     </div>
+                    
+                    <!-- AUDIO TOOLBAR -->
+                    <div class="audio-toolbar">
+                        <div class="audio-controls">
+                            <button id="playBtn" class="icon-btn">▶ PLAY AUDIO</button>
+                            <button id="stopBtn" class="icon-btn hidden">⏹ STOP</button>
+                        </div>
+                        <div class="audio-visualizer hidden" id="visualizer">
+                            <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+                            <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+                            <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+                            <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+                        </div>
+                    </div>
+
                     <textarea id="resultArea" readonly></textarea>
                 </section>
             </main>

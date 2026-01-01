@@ -8,9 +8,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const copyBtn = document.getElementById('copyBtn');
     const historyList = document.getElementById('historyList');
     const clearHistoryBtn = document.getElementById('clearHistoryBtn');
+    
+    // Audio Elements
+    const playBtn = document.getElementById('playBtn');
+    const stopBtn = document.getElementById('stopBtn');
+    const visualizer = document.getElementById('visualizer');
 
     // State Management
     let history = JSON.parse(localStorage.getItem('homes_history')) || [];
+    let currentUtterance = null;
 
     // --- INITIALIZATION ---
     renderHistory();
@@ -18,7 +24,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- EVENT LISTENERS ---
 
-    // Save API Key on change (optional convenience)
     apiKeyInput.addEventListener('change', () => {
         if(apiKeyInput.value) localStorage.setItem('homes_api_key', apiKeyInput.value);
     });
@@ -42,6 +47,15 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // Audio Controls
+    playBtn.addEventListener('click', () => {
+        const text = resultArea.value;
+        if(!text) return;
+        speakText(text);
+    });
+
+    stopBtn.addEventListener('click', stopSpeaking);
+
     // --- CORE FUNCTIONS ---
 
     function checkApiKey() {
@@ -56,10 +70,14 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!apiKey) return alert("ERRO DE ACESSO: API Key necessária para conexão neural.");
         if (!topic) return alert("ERRO DE DADOS: Insira um tema para processar.");
 
-        // UI Loading State
         setLoadingState(true);
-        resultArea.value = "/// INICIANDO PROTOCOLO NEURAL...\n/// AGUARDANDO RESPOSTA DO NÚCLEO (GEMINI-2.5-FLASH) ...";
+        resultArea.value = "/// INICIANDO PROTOCOLO NEURAL...\n/// AGUARDANDO RESPOSTA DO NÚCLEO (GEMINI-2.5-FLASH)...";
         outputSection.classList.remove('hidden');
+        
+        // Hide audio controls during generation
+        playBtn.classList.add('hidden');
+        stopBtn.classList.add('hidden');
+        visualizer.classList.add('hidden');
 
         const systemPrompt = constructPrompt(topic);
 
@@ -80,9 +98,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = await response.json();
             const generatedText = data.candidates[0].content.parts[0].text;
 
-            // Success
             resultArea.value = generatedText;
             addToHistory(topic, generatedText);
+            
+            // Show play button
+            playBtn.classList.remove('hidden');
 
         } catch (error) {
             console.error(error);
@@ -134,13 +154,49 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // --- AUDIO SYSTEM ---
+
+    function speakText(text) {
+        // Stop any current speech
+        window.speechSynthesis.cancel();
+
+        // Clean text (remove Markdown * and # for smoother reading)
+        const cleanText = text.replace(/[*#]/g, '');
+
+        currentUtterance = new SpeechSynthesisUtterance(cleanText);
+        currentUtterance.lang = 'pt-BR'; // Tenta pt-BR
+        currentUtterance.rate = 1.1;
+
+        // Visualizer Sync
+        currentUtterance.onstart = () => {
+            playBtn.classList.add('hidden');
+            stopBtn.classList.remove('hidden');
+            visualizer.classList.remove('hidden');
+        };
+
+        currentUtterance.onend = stopSpeaking;
+        currentUtterance.onerror = (e) => {
+            console.error('Speech error:', e);
+            stopSpeaking();
+        };
+
+        window.speechSynthesis.speak(currentUtterance);
+    }
+
+    function stopSpeaking() {
+        window.speechSynthesis.cancel();
+        playBtn.classList.remove('hidden');
+        stopBtn.classList.add('hidden');
+        visualizer.classList.add('hidden');
+    }
+
     // --- HISTORY SYSTEM ---
 
     function addToHistory(topic, script) {
         const timestamp = new Date().toLocaleTimeString();
         const newItem = { topic, script, timestamp };
-        history.unshift(newItem); // Add to top
-        if (history.length > 20) history.pop(); // Limit to 20 items
+        history.unshift(newItem);
+        if (history.length > 20) history.pop();
         saveHistory();
         renderHistory();
     }
@@ -167,11 +223,14 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function loadHistoryItem(index) {
+        // Stop audio if playing
+        stopSpeaking();
+
         const item = history[index];
         resultArea.value = item.script;
         outputSection.classList.remove('hidden');
+        playBtn.classList.remove('hidden'); // Ensure play button is available for loaded items
         
-        // Highlight active item
         document.querySelectorAll('.history-item').forEach(el => el.classList.remove('active'));
         document.querySelectorAll('.history-item')[index].classList.add('active');
     }
