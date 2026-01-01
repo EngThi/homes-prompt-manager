@@ -1,1 +1,280 @@
-/* Add styles here */
+:root {
+    --bg-color: #0a0a0a;
+    --card-bg: #111111;
+    --sidebar-bg: #0f0f0f;
+    --text-primary: #e0e0e0;
+    --text-secondary: #666;
+    --accent-color: #00ff9d;
+    --accent-hover: #00cc7a;
+    --border-color: #333;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Courier New', monospace;
+}
+
+body {
+    background-color: var(--bg-color);
+    color: var(--text-primary);
+    height: 100vh;
+    overflow: hidden; /* Prevent full page scroll */
+}
+
+.app-layout {
+    display: flex;
+    height: 100vh;
+}
+
+/* SIDEBAR STYLES */
+.sidebar {
+    width: 300px;
+    background-color: var(--sidebar-bg);
+    border-right: 1px solid var(--border-color);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+}
+
+.brand h2 {
+    font-size: 1.2rem;
+    margin-bottom: 20px;
+    letter-spacing: 2px;
+}
+
+.highlight {
+    color: var(--accent-color);
+    text-shadow: 0 0 10px rgba(0, 255, 157, 0.3);
+}
+
+.mini-card {
+    padding: 15px;
+    margin-bottom: 20px;
+    border: 1px solid var(--border-color);
+    background: #000;
+}
+
+.mini-card input {
+    width: 100%;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid #333;
+    color: var(--accent-color);
+    padding: 5px;
+    font-size: 0.8rem;
+}
+
+.mini-card input:focus {
+    outline: none;
+    border-color: var(--accent-color);
+}
+
+.history-section {
+    flex: 1;
+    overflow-y: auto;
+    border-top: 1px solid var(--border-color);
+    padding-top: 20px;
+}
+
+.history-section label {
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+    display: block;
+    margin-bottom: 10px;
+}
+
+#historyList {
+    list-style: none;
+}
+
+.history-item {
+    padding: 10px;
+    margin-bottom: 8px;
+    border: 1px solid transparent;
+    cursor: pointer;
+    font-size: 0.8rem;
+    transition: 0.2s;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: #888;
+}
+
+.history-item:hover {
+    border-color: var(--accent-color);
+    color: var(--accent-color);
+    background: rgba(0, 255, 157, 0.05);
+}
+
+.history-item.active {
+    background: var(--accent-color);
+    color: #000;
+    font-weight: bold;
+}
+
+.placeholder {
+    font-style: italic;
+    cursor: default;
+    color: #444;
+}
+
+.text-btn {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    font-size: 0.7rem;
+    text-decoration: underline;
+    cursor: pointer;
+    margin-top: 10px;
+    width: 100%;
+    text-align: left;
+}
+
+.text-btn:hover {
+    color: #fff;
+}
+
+/* MAIN CONTENT STYLES */
+.main-content {
+    flex: 1;
+    padding: 40px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+}
+
+header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.status-bar {
+    font-size: 0.7rem;
+    color: var(--accent-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 5px;
+}
+
+.status-dot {
+    width: 6px;
+    height: 6px;
+    background-color: var(--accent-color);
+    border-radius: 50%;
+    box-shadow: 0 0 8px var(--accent-color);
+}
+
+.subtitle {
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    letter-spacing: 3px;
+}
+
+.card {
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    padding: 20px;
+    margin-bottom: 20px;
+    border-radius: 4px;
+}
+
+.input-group {
+    display: flex;
+    gap: 10px;
+}
+
+.input-group input {
+    flex: 1;
+    background: #000;
+    border: 1px solid var(--border-color);
+    color: white;
+    padding: 12px;
+    font-size: 1rem;
+}
+
+button {
+    background: var(--accent-color);
+    color: #000;
+    border: none;
+    padding: 12px 24px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.2s;
+    text-transform: uppercase;
+}
+
+button:hover {
+    background: var(--accent-hover);
+    box-shadow: 0 0 15px rgba(0, 255, 157, 0.2);
+}
+
+button:disabled {
+    background: #333;
+    color: #666;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+.hidden {
+    display: none;
+}
+
+.output-zone {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+textarea {
+    flex: 1;
+    min-height: 400px;
+    background: #000;
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    padding: 20px;
+    resize: none;
+    font-size: 0.9rem;
+    line-height: 1.6;
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+}
+
+.small-btn {
+    padding: 4px 12px;
+    font-size: 0.7rem;
+    background: transparent;
+    border: 1px solid var(--accent-color);
+    color: var(--accent-color);
+}
+
+footer {
+    text-align: center;
+    color: #444;
+    font-size: 0.7rem;
+    margin-top: 20px;
+}
+
+/* SCROLLBAR */
+::-webkit-scrollbar {
+    width: 8px;
+}
+::-webkit-scrollbar-track {
+    background: #0a0a0a;
+}
+::-webkit-scrollbar-thumb {
+    background: #333;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}

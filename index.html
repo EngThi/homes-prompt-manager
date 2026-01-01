@@ -1,14 +1,66 @@
-<!doctype html>
-<html lang="en">
+<!DOCTYPE html>
+<html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Hello World</title>
-  <link href='/style.css' rel='stylesheet'>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HOMES: Neural Deck</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <h1>Hello, world!</h1>
-  <button onclick="console.log('hello');">Press me</button>
-  <script defer type="text/javascript" src="/main.js"></script>
+    <div class="app-layout">
+        <!-- SIDEBAR: Config & History -->
+        <aside class="sidebar">
+            <div class="brand">
+                <h2>HOMES<br><span class="highlight">NEURAL DECK</span></h2>
+            </div>
+            
+            <section class="card mini-card config-zone">
+                <label>ACCESS TOKEN</label>
+                <input type="password" id="apiKeyInput" placeholder="Gemini API Key...">
+            </section>
+
+            <div class="history-section">
+                <label>MEMORY BANKS</label>
+                <ul id="historyList">
+                    <!-- History items will be injected here -->
+                    <li class="history-item placeholder">Nenhum dado arquivado.</li>
+                </ul>
+                <button id="clearHistoryBtn" class="text-btn">LIMPAR MEMÓRIA</button>
+            </div>
+        </aside>
+
+        <!-- MAIN CONTENT -->
+        <div class="main-content">
+            <header>
+                <div class="status-bar">
+                    <span class="status-dot"></span> SYSTEM ONLINE
+                </div>
+                <p class="subtitle">AI VIDEO PIPELINE CONTROLLER v3.0</p>
+            </header>
+
+            <main>
+                <section class="card input-zone">
+                    <label>TEMA DO VÍDEO (INPUT DATA)</label>
+                    <div class="input-group">
+                        <input type="text" id="topicInput" placeholder="Ex: Engenharia Genética...">
+                        <button id="generateBtn">PROCESSAR ROTEIRO</button>
+                    </div>
+                </section>
+
+                <section class="card output-zone hidden" id="outputSection">
+                    <div class="card-header">
+                        <span>// OUTPUT_PROTOCOL_V1</span>
+                        <button id="copyBtn" class="small-btn">COPY CLIPBOARD</button>
+                    </div>
+                    <textarea id="resultArea" readonly></textarea>
+                </section>
+            </main>
+
+            <footer>
+                <p>ENG.THI AUTOMATION SYSTEMS © 2025</p>
+            </footer>
+        </div>
+    </div>
+    <script src="main.js"></script>
 </body>
 </html>
