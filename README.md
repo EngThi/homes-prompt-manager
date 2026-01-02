@@ -3,18 +3,26 @@
 > **The Ultimate Command Center for Faceless YouTube Channels.**
 > *Powered by Google Gemini 2.5 Flash.*
 
-![Project Status](https://img.shields.io/badge/Status-Stable_v1.0.0-00ff9d?style=for-the-badge)
+![Project Status](https://img.shields.io/badge/Status-Stable_v1.1.0-00ff9d?style=for-the-badge)
 ![Tech Stack](https://img.shields.io/badge/Stack-Vanilla_JS_|_CSS3-000000?style=for-the-badge)
 
 **HOMES: Neural Deck** is a specialized, cyberpunk-themed web application designed to automate the scripting process for high-retention video content. It replaces generic AI prompts with a sophisticated "Prompt Engineering" pipeline, connecting directly to Google's Gemini API to generate viral-ready scripts in seconds.
 
-## ✨ Key Features (v1.0.0)
+## ✨ Key Features (v1.1.0)
 
 *   **🧠 Neural Uplink (Gemini API):** Direct integration with Google's `gemini-2.5-flash` model for blazing-fast, high-quality script generation.
 *   **💾 Memory Banks (Local History):** Never lose a genius idea. All generated scripts are automatically saved to your browser's local storage and accessible via the sidebar.
 *   **🗣️ Neural Voice (TTS):** Native Text-to-Speech engine with a real-time audio visualizer to "proof-hear" your scripts before recording.
+    *   **New:** Select your preferred "Narrator" from all installed system voices.
+    *   **New:** "Audio Test Mode" enabled by default for manual text input and playback.
 *   **🎨 Cyberpunk UI:** A fully immersive, dark-mode interface designed for flow state and focus.
 *   **🔒 Privacy First:** Your API Key is stored locally in your browser, never on our servers.
+
+## 🔮 Future Roadmap: The "HOMES" Ecosystem
+
+This tool is the "Brain" of a larger automated content system.
+*   **HOMES-Engine Integration:** Future updates will link this Prompt Manager directly with **[HOMES-Engine]**, a separate repository focused on autonomous video rendering and asset assembly.
+*   The goal is to create a seamless pipeline: **Idea -> Script (Neural Deck) -> Video (HOMES-Engine).**
 
 ## 🚀 How to Use
 

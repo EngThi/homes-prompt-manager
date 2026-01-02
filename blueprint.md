@@ -23,7 +23,13 @@ A web-based command center for automating audiovisual content architecture. Desi
     - **Audio Controls:** Play/Stop buttons in the output interface.
     - **Visualizer:** CSS-based animated audio waveform simulation during playback.
 
+### V4.1: Audio Refinement (Current)
+- **Goal:** Improve User Experience with customizable audio settings.
+- **Features:**
+    - **Voice Selector:** Dropdown menu in the sidebar to choose from available system voices.
+    - **Persistence:** Save user's voice preference to `localStorage`.
+
 ## Current Plan
-1.  **Modify UI:** Add audio controls and visualizer container to `outputSection` in `index.html`.
-2.  **Update Logic:** Implement `playScript()` and `stopScript()` functions in `main.js`.
-3.  **Style:** Add CSS animations for the audio visualizer in `style.css`.
+1.  **Done:** Modify UI (`index.html`) to include voice selector.
+2.  **Done:** Update logic (`main.js`) to populate voices and handle selection.
+3.  **Done:** Style (`style.css`) the new dropdown to match the theme.

@@ -8,6 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const copyBtn = document.getElementById('copyBtn');
     const historyList = document.getElementById('historyList');
     const clearHistoryBtn = document.getElementById('clearHistoryBtn');
+    const voiceSelect = document.getElementById('voiceSelect'); // New voice selector
     
     // Audio Elements
     const playBtn = document.getElementById('playBtn');
@@ -17,6 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // State Management
     let history = JSON.parse(localStorage.getItem('homes_history')) || [];
     let currentUtterance = null;
+    let voices = [];
 
     // --- INITIALIZATION ---
     renderHistory();
@@ -31,6 +33,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     apiKeyInput.addEventListener('change', () => {
         if(apiKeyInput.value) localStorage.setItem('homes_api_key', apiKeyInput.value);
+    });
+    
+    // Save voice preference
+    voiceSelect.addEventListener('change', () => {
+        localStorage.setItem('homes_voice_pref', voiceSelect.value);
     });
 
     generateBtn.addEventListener('click', handleGeneration);
@@ -160,6 +167,36 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- AUDIO SYSTEM ---
+    
+    function populateVoices() {
+        voices = window.speechSynthesis.getVoices();
+        voiceSelect.innerHTML = '';
+        
+        if(voices.length === 0) {
+            const option = document.createElement('option');
+            option.textContent = "Carregando vozes...";
+            voiceSelect.appendChild(option);
+            return;
+        }
+
+        voices.forEach((voice, i) => {
+            const option = document.createElement('option');
+            option.textContent = `${voice.name} (${voice.lang})`;
+            option.value = i;
+            voiceSelect.appendChild(option);
+        });
+
+        // Restore preference
+        const savedVoice = localStorage.getItem('homes_voice_pref');
+        if(savedVoice) {
+            voiceSelect.value = savedVoice;
+        }
+    }
+    
+    populateVoices();
+    if (speechSynthesis.onvoiceschanged !== undefined) {
+        speechSynthesis.onvoiceschanged = populateVoices;
+    }
 
     function speakText(text) {
         // Stop any current speech
@@ -169,7 +206,15 @@ document.addEventListener('DOMContentLoaded', () => {
         const cleanText = text.replace(/[*#]/g, '');
 
         currentUtterance = new SpeechSynthesisUtterance(cleanText);
-        currentUtterance.lang = 'pt-BR'; // Tenta pt-BR
+        
+        // Set selected voice
+        const selectedVoiceIndex = voiceSelect.value;
+        if (voices[selectedVoiceIndex]) {
+            currentUtterance.voice = voices[selectedVoiceIndex];
+        } else {
+             currentUtterance.lang = 'pt-BR'; // Fallback
+        }
+        
         currentUtterance.rate = 1.1;
 
         // Visualizer Sync
