@@ -325,9 +325,11 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    function loadHistoryItem(index) {
-        // Stop audio if playing (unless called from playHistoryItem which handles restarts)
-        stopSpeaking();
+    function loadHistoryItem(index, shouldStopAudio = true) {
+        // Stop audio if playing (default behavior)
+        if (shouldStopAudio) {
+            stopSpeaking();
+        }
 
         const item = history[index];
         resultArea.value = item.script;
@@ -341,13 +343,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function playHistoryItem(index) {
-        loadHistoryItem(index);
-        // Allow load to finish update state, then speak
-        setTimeout(() => {
-            const item = history[index];
-            if(item && item.script) {
-                speakText(item.script);
-            }
-        }, 50);
+        // Load item visually but DO NOT stop audio yet, as speakText will handle the transition
+        loadHistoryItem(index, false);
+        
+        const item = history[index];
+        if(item && item.script) {
+            // Call speakText immediately to preserve user gesture
+            speakText(item.script);
+        }
     }
 });
