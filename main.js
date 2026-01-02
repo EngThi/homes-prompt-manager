@@ -32,31 +32,36 @@ document.addEventListener('DOMContentLoaded', () => {
         stopSpeaking();
         isPaused = false;
 
-        // --- AGGRESSIVE CLEANING ---
+        // --- ULTRA AGGRESSIVE CLEANING ---
         let cleanText = text
-            // Remove text between brackets [] (e.g., [SOUND], [B-ROLL])
-            .replace(/(\[.*?\])/g, '')
-            // Remove text between parentheses () (e.g., (0:00-0:30))
-            .replace(/(\([^)]*\))/g, '')
-            // Remove Markdown headers (#, ##) and bold/italic (*, **)
-            .replace(/[#*]/g, '')
-            // Remove multiple newlines and extra spaces
+            // Remove brackets [] including multiline content
+            .replace(/[\[][\s\S]*?[\]]/g, '')
+            // Remove parentheses () including multiline content
+            .replace(/\([\s\S]*?\)/g, '')
+            // Remove technical labels
+            .replace(/NARRATOR:|VOICE OVER:|VO:|SCRIPT:/gi, '')
+            // Remove markdown separators and symbols
+            .replace(/---/g, '')
+            .replace(/[#*`_]/g, '')
+            // Normalize whitespace
             .replace(/\s+/g, ' ')
             .trim();
 
-        if (!cleanText) {
-            alert("Não há texto narrável neste roteiro.");
+        if (!cleanText || cleanText.length < 2) {
+            console.warn("Texto limpo muito curto ou vazio.");
             return;
         }
 
         // --- ROBUST CHUNKING ---
-        // Split by sentence delimiters (. ? ! : ;)
-        // The regex looks for the delimiter followed by a space or end of string
-        // This keeps the delimiter attached to the previous sentence
-        const sentences = cleanText.match(/[^.?!:;]+[.?!:;]+/g) || [cleanText];
+        // Split by sentence delimiters or line breaks
+        const sentences = cleanText.split(/(?<=[.?!:;])\s+/);
         
-        // Filter out very short or empty chunks (noise)
-        speechQueue = sentences.filter(s => s.trim().length > 1);
+        // Filter out empty chunks and trim
+        speechQueue = sentences.map(s => s.trim()).filter(s => s.length > 1);
+        
+        if (speechQueue.length === 0) {
+            speechQueue = [cleanText];
+        }
         
         isSpeakingQueue = true;
         playNextChunk();
@@ -69,14 +74,26 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         const chunk = speechQueue.shift();
+        
+        // Final sanity check on chunk
+        if (!chunk || chunk.length < 2) {
+            playNextChunk();
+            return;
+        }
+
         currentUtterance = new SpeechSynthesisUtterance(chunk);
         
-        // Set selected voice
+        // Force language
+        currentUtterance.lang = 'pt-BR';
+
+        // Set selected voice explicitly
         const selectedVoiceIndex = voiceSelect.value;
         if (voices[selectedVoiceIndex]) {
             currentUtterance.voice = voices[selectedVoiceIndex];
         } else {
-             currentUtterance.lang = 'pt-BR'; // Fallback
+            // Try to find ANY pt-BR voice if selection fails
+            const ptVoice = voices.find(v => v.lang.includes('pt'));
+            if (ptVoice) currentUtterance.voice = ptVoice;
         }
         
         currentUtterance.rate = 1.1;
@@ -86,18 +103,17 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         currentUtterance.onend = () => {
-            if (isSpeakingQueue && speechQueue.length > 0) {
+            if (isSpeakingQueue) {
                 playNextChunk();
-            } else {
-                stopSpeaking();
             }
         };
 
         currentUtterance.onerror = (e) => {
-            console.error('Speech error:', e.error);
-            // Attempt to continue to next chunk even on error
+            console.error('Speech error details:', e);
+            // If it failed but we still have a queue, try to "reset" the engine and continue
             if (isSpeakingQueue && speechQueue.length > 0) {
-                playNextChunk();
+                window.speechSynthesis.cancel();
+                setTimeout(() => playNextChunk(), 100);
             } else {
                 stopSpeaking();
             }
