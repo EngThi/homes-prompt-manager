@@ -36,3 +36,8 @@ yarn-error.log*
 
 # OS
 Thumbs.db
+
+# Project Local Files
+.wakatime-project
+SESSION_STATUS.md
+firebase-debug.log
