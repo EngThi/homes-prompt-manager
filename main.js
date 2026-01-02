@@ -32,14 +32,33 @@ document.addEventListener('DOMContentLoaded', () => {
         stopSpeaking();
         isPaused = false;
 
-        // Clean text (remove Markdown * and #)
-        const cleanText = text.replace(/[*#]/g, '');
+        // --- AGGRESSIVE CLEANING ---
+        let cleanText = text
+            // Remove text between brackets [] (e.g., [SOUND], [B-ROLL])
+            .replace(/(\[.*?\])/g, '')
+            // Remove text between parentheses () (e.g., (0:00-0:30))
+            .replace(/(\([^)]*\))/g, '')
+            // Remove Markdown headers (#, ##) and bold/italic (*, **)
+            .replace(/[#*]/g, '')
+            // Remove multiple newlines and extra spaces
+            .replace(/\s+/g, ' ')
+            .trim();
 
-        // Chunking logic: Split by punctuation to avoid browser limits
-        const sentences = cleanText.match(/[^.!?]+[.!?]+/g) || [cleanText];
-        speechQueue = sentences;
-        isSpeakingQueue = true;
+        if (!cleanText) {
+            alert("Não há texto narrável neste roteiro.");
+            return;
+        }
+
+        // --- ROBUST CHUNKING ---
+        // Split by sentence delimiters (. ? ! : ;)
+        // The regex looks for the delimiter followed by a space or end of string
+        // This keeps the delimiter attached to the previous sentence
+        const sentences = cleanText.match(/[^.?!:;]+[.?!:;]+/g) || [cleanText];
         
+        // Filter out very short or empty chunks (noise)
+        speechQueue = sentences.filter(s => s.trim().length > 1);
+        
+        isSpeakingQueue = true;
         playNextChunk();
     }
 
