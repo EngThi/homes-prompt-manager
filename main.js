@@ -39,6 +39,7 @@ Formato: Apenas a lista dos 5 prompts, em Inglês, sem introduções.`
             META: /\[[\s\S]*?\]/g,
             PARENS: /\([\s\S]*?\)/g,
             LABELS: /(?:NARRATOR|VOICE OVER|VO|SCRIPT|Text Overlay|B-ROLL|SOUND):/gi,
+            TIMESTAMPS: /\d{1,2}:\d{2}(?:-\d{1,2}:\d{2})?/g,
             SYMBOLS: /[^a-zA-Z0-9À-ÿ\s.,?!:;]/g
         }
     };
@@ -433,6 +434,7 @@ Formato: Apenas a lista dos 5 prompts, em Inglês (para melhor compatibilidade),
         let processedText = text
             .replace(CONFIG.CLEANING_REGEX.META, '') 
             .replace(CONFIG.CLEANING_REGEX.PARENS, '') 
+            .replace(CONFIG.CLEANING_REGEX.TIMESTAMPS, '') // Remove timestamps explicitly
             .replace(CONFIG.CLEANING_REGEX.LABELS, '') 
             .replace(/---/g, ''); 
 
