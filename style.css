@@ -371,3 +371,77 @@ footer {
 ::-webkit-scrollbar-thumb:hover {
     background: #555;
 }
+
+/* RESPONSIVE LAYOUT */
+@media (max-width: 768px) {
+    body {
+        overflow: auto; /* Enable scroll for vertical layout */
+    }
+
+    .app-layout {
+        flex-direction: column;
+        height: auto; /* Allow content to grow */
+    }
+
+    .sidebar {
+        width: 100%;
+        height: auto;
+        border-right: none;
+        border-bottom: 1px solid var(--border-color);
+        padding: 15px;
+        flex: none; /* Don't stretch */
+    }
+
+    .brand h2 {
+        font-size: 1rem;
+        margin-bottom: 10px;
+        text-align: center;
+    }
+
+    .history-section {
+        max-height: 200px; /* Limit history height on mobile */
+        border-top: 1px solid var(--border-color);
+        margin-top: 15px;
+        padding-top: 15px;
+    }
+
+    .main-content {
+        padding: 20px;
+        height: auto;
+    }
+
+    .input-group {
+        flex-direction: column;
+    }
+
+    .input-group button {
+        width: 100%;
+    }
+
+    textarea {
+        min-height: 300px;
+    }
+
+    .audio-toolbar {
+        flex-direction: column;
+        gap: 10px;
+        align-items: stretch;
+    }
+
+    .audio-controls {
+        display: flex;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 5px;
+    }
+
+    .icon-btn {
+        flex: 1;
+        min-width: auto;
+    }
+
+    .audio-visualizer {
+        justify-content: center;
+        margin-top: 5px;
+    }
+}
