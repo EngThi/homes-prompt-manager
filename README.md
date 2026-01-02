@@ -26,6 +26,7 @@
     *   `02_prompts_midjourney.txt` (Visual assets commands)
     *   `03_info_producao.txt` (Metadata & Settings)
 *   **Memory Banks:** Local storage history with instant playback.
+*   **User Persistence:** Automatically saves your preferred Voice, Speed, and Pitch settings.
 
 ### 🎨 Cyberpunk UI
 *   **Immersive Design:** Dark mode, neon accents, and pulse animations.

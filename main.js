@@ -38,6 +38,45 @@ document.addEventListener('DOMContentLoaded', () => {
     let isSpeakingQueue = false;
     let lastChunk = ""; // Store last chunk for resume fallback
 
+    // --- PERSISTENCE (V5.2) ---
+    function savePreferences() {
+        const prefs = {
+            rate: rateInput.value,
+            pitch: pitchInput.value,
+            // Save the Voice Name/URI, not just the index (which can change)
+            voiceURI: voices[voiceSelect.value]?.voiceURI
+        };
+        localStorage.setItem('homes_prefs', JSON.stringify(prefs));
+    }
+
+    function loadPreferences() {
+        const saved = localStorage.getItem('homes_prefs');
+        if (!saved) return;
+        
+        try {
+            const prefs = JSON.parse(saved);
+            
+            if (prefs.rate) {
+                rateInput.value = prefs.rate;
+                rateValue.textContent = prefs.rate;
+            }
+            if (prefs.pitch) {
+                pitchInput.value = prefs.pitch;
+                pitchValue.textContent = prefs.pitch;
+            }
+            
+            // Restore voice by URI match (more robust than index)
+            if (prefs.voiceURI && voices.length > 0) {
+                const index = voices.findIndex(v => v.voiceURI === prefs.voiceURI);
+                if (index !== -1) {
+                    voiceSelect.value = index;
+                }
+            }
+        } catch (e) {
+            console.warn("Failed to load preferences", e);
+        }
+    }
+
     // --- INITIALIZATION & EVENTS ---
 
     function populateVoiceList() {
@@ -69,6 +108,9 @@ document.addEventListener('DOMContentLoaded', () => {
             
             voiceSelect.appendChild(option);
         });
+        
+        // Load saved settings AFTER populating voices
+        loadPreferences();
     }
 
     populateVoiceList();
@@ -77,8 +119,17 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Slider Listeners
-    rateInput.addEventListener('input', () => rateValue.textContent = rateInput.value);
-    pitchInput.addEventListener('input', () => pitchValue.textContent = pitchInput.value);
+    rateInput.addEventListener('input', () => {
+        rateValue.textContent = rateInput.value;
+        savePreferences();
+    });
+    
+    pitchInput.addEventListener('input', () => {
+        pitchValue.textContent = pitchInput.value;
+        savePreferences();
+    });
+    
+    voiceSelect.addEventListener('change', savePreferences);
 
     // --- EVENT LISTENERS ---
 
