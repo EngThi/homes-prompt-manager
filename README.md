@@ -10,6 +10,10 @@
 
 ## ✨ Key Features (v5.2)
 
+https://github.com/user-attachments/assets/9d030405-8ca2-4d2c-97aa-d8d7fc54166e
+
+
+
 ### 🧠 Neural Core
 *   **Gemini 2.5 Integration:** Blazing-fast generation of narration-focused scripts.
 *   **Visual Core:** Automatically generates 5 detailed Midjourney/DALL-E image prompts based on your script context.
