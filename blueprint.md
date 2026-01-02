@@ -23,9 +23,11 @@ A web-based command center for automating audiovisual content architecture. Desi
     - **Controls:** Play, Pause, Resume, Stop.
     - **Visualizer:** CSS-based animated audio waveform.
     - **Voice Selector:** Sidebar configuration.
+    - **History Playback:** Direct play button in memory items.
 
 ## Current Plan
 1.  **Done:** Restore Audio UI components in `index.html`.
 2.  **Done:** Restore Audio logic in `main.js`.
 3.  **Done:** Restore Audio styles in `style.css`.
 4.  **Done:** Add "Pause" and "Resume" functionality.
+5.  **Done:** Add "Play" button to History items for direct playback.

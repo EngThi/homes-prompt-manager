@@ -299,14 +299,34 @@ document.addEventListener('DOMContentLoaded', () => {
         history.forEach((item, index) => {
             const li = document.createElement('li');
             li.className = 'history-item';
-            li.innerHTML = `<strong>${item.topic}</strong><br><span style="font-size:0.6rem">${item.timestamp}</span>`;
-            li.onclick = () => loadHistoryItem(index);
+            
+            li.innerHTML = `
+                <div class="history-content">
+                    <strong>${item.topic}</strong><br>
+                    <span style="font-size:0.6rem">${item.timestamp}</span>
+                </div>
+                <button class="mini-play-btn" title="Reproduzir agora">▶</button>
+            `;
+            
+            // Load item on main click
+            li.onclick = (e) => {
+                if (e.target.closest('.mini-play-btn')) return;
+                loadHistoryItem(index);
+            };
+
+            // Play item specifically
+            const miniPlayBtn = li.querySelector('.mini-play-btn');
+            miniPlayBtn.onclick = (e) => {
+                e.stopPropagation();
+                playHistoryItem(index);
+            };
+
             historyList.appendChild(li);
         });
     }
 
     function loadHistoryItem(index) {
-        // Stop audio if playing
+        // Stop audio if playing (unless called from playHistoryItem which handles restarts)
         stopSpeaking();
 
         const item = history[index];
@@ -315,6 +335,19 @@ document.addEventListener('DOMContentLoaded', () => {
         playBtn.classList.remove('hidden');
         
         document.querySelectorAll('.history-item').forEach(el => el.classList.remove('active'));
-        document.querySelectorAll('.history-item')[index].classList.add('active');
+        if (document.querySelectorAll('.history-item')[index]) {
+            document.querySelectorAll('.history-item')[index].classList.add('active');
+        }
+    }
+
+    function playHistoryItem(index) {
+        loadHistoryItem(index);
+        // Allow load to finish update state, then speak
+        setTimeout(() => {
+            const item = history[index];
+            if(item && item.script) {
+                speakText(item.script);
+            }
+        }, 50);
     }
 });
