@@ -16,20 +16,16 @@ A web-based command center for automating audiovisual content architecture. Desi
 - **Status:** Complete.
 - **Features:** Local storage history, sidebar layout, refined prompt.
 
-### V4.0: Audio Synthesis (Current)
-- **Goal:** Enable auditory review of scripts using native browser Text-to-Speech.
-- **New Features:**
-    - **TTS Engine:** Utilize `window.speechSynthesis`.
-    - **Audio Controls:** Play/Stop buttons in the output interface.
-    - **Visualizer:** CSS-based animated audio waveform simulation during playback.
-
-### V4.1: Audio Refinement (Current)
-- **Goal:** Improve User Experience with customizable audio settings.
+### V4.0: Audio Synthesis (Restored)
+- **Status:** Active.
 - **Features:**
-    - **Voice Selector:** Dropdown menu in the sidebar to choose from available system voices.
-    - **Persistence:** Save user's voice preference to `localStorage`.
+    - **TTS Engine:** Utilize `window.speechSynthesis`.
+    - **Controls:** Play, Pause, Resume, Stop.
+    - **Visualizer:** CSS-based animated audio waveform.
+    - **Voice Selector:** Sidebar configuration.
 
 ## Current Plan
-1.  **Done:** Modify UI (`index.html`) to include voice selector.
-2.  **Done:** Update logic (`main.js`) to populate voices and handle selection.
-3.  **Done:** Style (`style.css`) the new dropdown to match the theme.
+1.  **Done:** Restore Audio UI components in `index.html`.
+2.  **Done:** Restore Audio logic in `main.js`.
+3.  **Done:** Restore Audio styles in `style.css`.
+4.  **Done:** Add "Pause" and "Resume" functionality.

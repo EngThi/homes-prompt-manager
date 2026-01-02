@@ -12,9 +12,9 @@
 
 *   **🧠 Neural Uplink (Gemini API):** Direct integration with Google's `gemini-2.5-flash` model for blazing-fast, high-quality script generation.
 *   **💾 Memory Banks (Local History):** Never lose a genius idea. All generated scripts are automatically saved to your browser's local storage and accessible via the sidebar.
-*   **🗣️ Neural Voice (TTS):** Native Text-to-Speech engine with a real-time audio visualizer to "proof-hear" your scripts before recording.
-    *   **New:** Select your preferred "Narrator" from all installed system voices.
-    *   **New:** "Audio Test Mode" enabled by default for manual text input and playback.
+*   **🗣️ Neural Voice (TTS):** Native Text-to-Speech engine to "proof-hear" your scripts.
+    *   **Controls:** Play, Pause, Resume, and Stop.
+    *   **Visualizer:** Real-time audio waveform simulation.
 *   **🎨 Cyberpunk UI:** A fully immersive, dark-mode interface designed for flow state and focus.
 *   **🔒 Privacy First:** Your API Key is stored locally in your browser, never on our servers.
 
@@ -39,7 +39,6 @@ You don't need to install anything! Just open the `index.html` file in your brow
 3.  Watch the AI craft a script with Hooks, B-Roll suggestions, and Pattern Interrupts.
 
 ### 3. Review
-*   Use the **Play Audio** button to listen to the script.
 *   Click **Copy** to transfer it to your teleprompter or editor.
 *   Check the **Memory Banks** sidebar to revisit previous scripts.
 

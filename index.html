@@ -63,7 +63,9 @@
                     <!-- AUDIO TOOLBAR -->
                     <div class="audio-toolbar">
                         <div class="audio-controls">
-                            <button id="playBtn" class="icon-btn">▶ PLAY AUDIO</button>
+                            <button id="playBtn" class="icon-btn">▶ PLAY</button>
+                            <button id="pauseBtn" class="icon-btn hidden">⏸ PAUSE</button>
+                            <button id="resumeBtn" class="icon-btn hidden">▶ RESUME</button>
                             <button id="stopBtn" class="icon-btn hidden">⏹ STOP</button>
                         </div>
                         <div class="audio-visualizer hidden" id="visualizer">
@@ -74,7 +76,7 @@
                         </div>
                     </div>
 
-                    <textarea id="resultArea" placeholder="Cole ou digite um texto aqui para testar o áudio..."></textarea>
+                    <textarea id="resultArea" placeholder="Aguardando processamento neural..." readonly></textarea>
                 </section>
             </main>
 

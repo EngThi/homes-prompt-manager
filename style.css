@@ -245,6 +245,8 @@ button:disabled {
     flex-direction: column;
 }
 
+
+
 /* AUDIO TOOLBAR STYLES */
 .audio-toolbar {
     display: flex;
@@ -263,6 +265,8 @@ button:disabled {
     display: flex;
     align-items: center;
     gap: 5px;
+    min-width: 80px;
+    justify-content: center;
 }
 
 .audio-visualizer {

@@ -8,10 +8,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const copyBtn = document.getElementById('copyBtn');
     const historyList = document.getElementById('historyList');
     const clearHistoryBtn = document.getElementById('clearHistoryBtn');
-    const voiceSelect = document.getElementById('voiceSelect'); // New voice selector
+    const voiceSelect = document.getElementById('voiceSelect'); 
     
     // Audio Elements
     const playBtn = document.getElementById('playBtn');
+    const pauseBtn = document.getElementById('pauseBtn');
+    const resumeBtn = document.getElementById('resumeBtn');
     const stopBtn = document.getElementById('stopBtn');
     const visualizer = document.getElementById('visualizer');
 
@@ -19,15 +21,13 @@ document.addEventListener('DOMContentLoaded', () => {
     let history = JSON.parse(localStorage.getItem('homes_history')) || [];
     let currentUtterance = null;
     let voices = [];
+    let isPaused = false;
 
     // --- INITIALIZATION ---
     renderHistory();
     checkApiKey();
 
-    // TEST MODE: Enable manual input for audio testing
-    outputSection.classList.remove('hidden');
-    resultArea.removeAttribute('readonly');
-    resultArea.placeholder = "Cole ou digite um texto aqui para testar o áudio...";
+    outputSection.classList.add('hidden'); // Start hidden until generation or history load
 
     // --- EVENT LISTENERS ---
 
@@ -66,6 +66,22 @@ document.addEventListener('DOMContentLoaded', () => {
         speakText(text);
     });
 
+    pauseBtn.addEventListener('click', () => {
+        if(window.speechSynthesis.speaking && !window.speechSynthesis.paused) {
+            window.speechSynthesis.pause();
+            isPaused = true;
+            updateAudioUI('paused');
+        }
+    });
+
+    resumeBtn.addEventListener('click', () => {
+        if(window.speechSynthesis.paused) {
+            window.speechSynthesis.resume();
+            isPaused = false;
+            updateAudioUI('playing');
+        }
+    });
+
     stopBtn.addEventListener('click', stopSpeaking);
 
     // --- CORE FUNCTIONS ---
@@ -87,9 +103,8 @@ document.addEventListener('DOMContentLoaded', () => {
         outputSection.classList.remove('hidden');
         
         // Hide audio controls during generation
-        playBtn.classList.add('hidden');
-        stopBtn.classList.add('hidden');
-        visualizer.classList.add('hidden');
+        updateAudioUI('stopped'); // Ensure reset
+        playBtn.classList.add('hidden'); // Force hide play until done
 
         const systemPrompt = constructPrompt(topic);
 
@@ -201,6 +216,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function speakText(text) {
         // Stop any current speech
         window.speechSynthesis.cancel();
+        isPaused = false;
 
         // Clean text (remove Markdown * and # for smoother reading)
         const cleanText = text.replace(/[*#]/g, '');
@@ -219,9 +235,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Visualizer Sync
         currentUtterance.onstart = () => {
-            playBtn.classList.add('hidden');
-            stopBtn.classList.remove('hidden');
-            visualizer.classList.remove('hidden');
+            updateAudioUI('playing');
         };
 
         currentUtterance.onend = stopSpeaking;
@@ -235,9 +249,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function stopSpeaking() {
         window.speechSynthesis.cancel();
-        playBtn.classList.remove('hidden');
+        isPaused = false;
+        updateAudioUI('stopped');
+    }
+
+    function updateAudioUI(state) {
+        // Hide all first
+        playBtn.classList.add('hidden');
+        pauseBtn.classList.add('hidden');
+        resumeBtn.classList.add('hidden');
         stopBtn.classList.add('hidden');
         visualizer.classList.add('hidden');
+
+        if (state === 'playing') {
+            pauseBtn.classList.remove('hidden');
+            stopBtn.classList.remove('hidden');
+            visualizer.classList.remove('hidden');
+        } else if (state === 'paused') {
+            resumeBtn.classList.remove('hidden');
+            stopBtn.classList.remove('hidden');
+        } else { // stopped
+            playBtn.classList.remove('hidden');
+        }
     }
 
     // --- HISTORY SYSTEM ---
@@ -279,7 +312,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const item = history[index];
         resultArea.value = item.script;
         outputSection.classList.remove('hidden');
-        playBtn.classList.remove('hidden'); // Ensure play button is available for loaded items
+        playBtn.classList.remove('hidden');
         
         document.querySelectorAll('.history-item').forEach(el => el.classList.remove('active'));
         document.querySelectorAll('.history-item')[index].classList.add('active');
