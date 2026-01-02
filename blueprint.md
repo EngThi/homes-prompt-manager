@@ -16,25 +16,20 @@ A web-based command center for automating audiovisual content architecture. Desi
 - **Status:** Complete.
 - **Features:** Local storage history, sidebar layout, refined prompt.
 
-### V4.0: Audio Synthesis (Restored)
+### V4.0: Audio Synthesis
 - **Status:** Complete.
-- **Features:**
-    - **TTS Engine:** Utilize `window.speechSynthesis`.
-    - **Controls:** Play, Pause, Resume, Stop.
-    - **Visualizer:** CSS-based animated audio waveform.
-    - **Voice Selector:** Sidebar configuration.
-    - **History Playback:** Direct play button in memory items.
+- **Features:** TTS Engine, Voice Selector, Animated Audio Waveform.
 
-### V4.1: Mobile Responsiveness
-- **Status:** Complete.
+### V5.0: Mobile Stability & UX (Current)
+- **Status:** COMPLETE / STABLE.
 - **Features:**
-    - **Layout:** Vertical stacking for screens < 768px.
-    - **UX:** Touch-friendly buttons and scrollable body.
+    - **Radical Sanitization:** Pure text extraction for TTS stability.
+    - **Queue-Based Audio:** Custom Pause/Resume logic for mobile browsers.
+    - **Cyberpunk UI Enhancements:** Pulse animations, neon scrollbars, optimized touch targets.
+    - **Narration-Optimized Prompting:** High-quality script generation without technical noise.
 
-## Current Plan
-1.  **Done:** Restore Audio UI components in `index.html`.
-2.  **Done:** Restore Audio logic in `main.js`.
-3.  **Done:** Restore Audio styles in `style.css`.
-4.  **Done:** Add "Pause" and "Resume" functionality.
-5.  **Done:** Add "Play" button to History items for direct playback.
-6.  **Done:** Implement Responsive CSS for Mobile/Tablet devices.
+## Deployment & Technicals
+- **Frontend:** Vanilla JS, CSS3, HTML5.
+- **API:** Google Gemini Pro / Flash.
+- **TTS:** Web Speech API (with custom queue management).
+- **Icons/Visuals:** CSS-based animations (Neon Pulse, Bar Visualizer).

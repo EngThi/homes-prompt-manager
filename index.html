@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HOMES: Neural Deck</title>
     <link rel="stylesheet" href="style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
 </head>
 <body>
     <div class="app-layout">
@@ -22,6 +24,17 @@
                 
                 <label>NARRATOR VOICE</label>
                 <select id="voiceSelect" class="full-width"></select>
+
+                <div class="audio-settings">
+                    <div class="setting-row">
+                        <label>SPEED: <span id="rateValue">1.1</span></label>
+                        <input type="range" id="rateInput" min="0.5" max="2.0" step="0.1" value="1.1">
+                    </div>
+                    <div class="setting-row">
+                        <label>PITCH: <span id="pitchValue">1.0</span></label>
+                        <input type="range" id="pitchInput" min="0.5" max="2.0" step="0.1" value="1.0">
+                    </div>
+                </div>
             </section>
 
             <div class="history-section">
@@ -50,12 +63,17 @@
                         <input type="text" id="topicInput" placeholder="Ex: Engenharia Genética...">
                         <button id="generateBtn">PROCESSAR ROTEIRO</button>
                     </div>
+                    <button id="visualBtn" class="secondary-btn hidden" style="margin-top: 10px; width: 100%;">
+                        👁️ EXTRAIR PROMPTS VISUAIS (MIDJOURNEY)
+                    </button>
                 </section>
 
                 <section class="card output-zone" id="outputSection">
                     <div class="card-header">
                         <span>// OUTPUT_PROTOCOL_V1</span>
                         <div class="actions">
+                            <button id="downloadZipBtn" class="small-btn" style="border-color: #bd00ff; color: #bd00ff;">📦 ZIP</button>
+                            <button id="downloadBtn" class="small-btn">⇩ TXT</button>
                             <button id="copyBtn" class="small-btn">COPY</button>
                         </div>
                     </div>
@@ -77,6 +95,14 @@
                     </div>
 
                     <textarea id="resultArea" placeholder="Aguardando processamento neural..." readonly></textarea>
+                </section>
+
+                <section class="card visual-zone hidden" id="visualSection">
+                    <div class="card-header">
+                        <span>// VISUAL_CORE_V1 [IMAGE_PROMPTS]</span>
+                        <button id="copyVisualsBtn" class="small-btn">COPY ALL</button>
+                    </div>
+                    <div id="visualContent" class="visual-content"></div>
                 </section>
             </main>
 

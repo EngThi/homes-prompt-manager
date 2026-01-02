@@ -3,51 +3,57 @@
 > **The Ultimate Command Center for Faceless YouTube Channels.**
 > *Powered by Google Gemini 2.5 Flash.*
 
-![Project Status](https://img.shields.io/badge/Status-Stable_v1.1.0-00ff9d?style=for-the-badge)
+![Project Status](https://img.shields.io/badge/Status-Stable_v5.2-00ff9d?style=for-the-badge)
 ![Tech Stack](https://img.shields.io/badge/Stack-Vanilla_JS_|_CSS3-000000?style=for-the-badge)
 
 **HOMES: Neural Deck** is a specialized, cyberpunk-themed web application designed to automate the scripting process for high-retention video content. It replaces generic AI prompts with a sophisticated "Prompt Engineering" pipeline, connecting directly to Google's Gemini API to generate viral-ready scripts in seconds.
 
-## ✨ Key Features (v1.1.0)
+## ✨ Key Features (v5.2)
 
-*   **🧠 Neural Uplink (Gemini API):** Direct integration with Google's `gemini-2.5-flash` model for blazing-fast, high-quality script generation.
-*   **💾 Memory Banks (Local History):** Never lose a genius idea. All generated scripts are automatically saved to your browser's local storage and accessible via the sidebar.
-*   **🗣️ Neural Voice (TTS):** Native Text-to-Speech engine to "proof-hear" your scripts.
-    *   **Controls:** Play, Pause, Resume, and Stop.
-    *   **Visualizer:** Real-time audio waveform simulation.
-*   **🎨 Cyberpunk UI:** A fully immersive, dark-mode interface designed for flow state and focus.
-*   **🔒 Privacy First:** Your API Key is stored locally in your browser, never on our servers.
+### 🧠 Neural Core
+*   **Gemini 2.5 Integration:** Blazing-fast generation of narration-focused scripts.
+*   **Visual Core:** Automatically generates 5 detailed Midjourney/DALL-E image prompts based on your script context.
 
-## 🔮 Future Roadmap: The "HOMES" Ecosystem
+### 🗣️ Advanced Audio (TTS)
+*   **Neural Voice Engine:** Native Text-to-Speech with "Sanitized" text processing for maximum stability on mobile.
+*   **Full Control:** Adjust **Speed (Rate)** and **Pitch** via neon sliders.
+*   **Queue-Based Playback:** Robust Pause/Resume system that never loses its place, even on iOS/Android.
+*   **Visualizer:** Real-time audio waveform simulation.
 
-This tool is the "Brain" of a larger automated content system.
-*   **HOMES-Engine Integration:** Future updates will link this Prompt Manager directly with **[HOMES-Engine]**, a separate repository focused on autonomous video rendering and asset assembly.
-*   The goal is to create a seamless pipeline: **Idea -> Script (Neural Deck) -> Video (HOMES-Engine).**
+### 📦 Production Ready
+*   **ZIP Export:** Download a complete production package containing:
+    *   `01_roteiro_narracao.txt` (Clean script)
+    *   `02_prompts_midjourney.txt` (Visual assets commands)
+    *   `03_info_producao.txt` (Metadata & Settings)
+*   **Memory Banks:** Local storage history with instant playback.
+
+### 🎨 Cyberpunk UI
+*   **Immersive Design:** Dark mode, neon accents, and pulse animations.
+*   **Mobile Optimized:** Touch-friendly buttons (44px+) and responsive grid layout.
 
 ## 🚀 How to Use
 
 ### 1. Setup
-You don't need to install anything! Just open the `index.html` file in your browser or deploy it.
-
 1.  Get your **Gemini API Key** from [Google AI Studio](https://aistudio.google.com/).
-2.  Open the App.
+2.  Open the App (`index.html`).
 3.  Paste your key in the **ACCESS TOKEN** field (sidebar).
 
 ### 2. Generate
-1.  Type a video topic (e.g., *"The Mystery of the Pyramids"* or *"Quantum Computing Explained"*).
+1.  Type a video topic (e.g., *"The Mystery of the Pyramids"*).
 2.  Click **PROCESSAR ROTEIRO**.
-3.  Watch the AI craft a script with Hooks, B-Roll suggestions, and Pattern Interrupts.
+3.  *Optional:* Click **EXTRAIR PROMPTS VISUAIS** to get AI image commands.
 
-### 3. Review
-*   Click **Copy** to transfer it to your teleprompter or editor.
-*   Check the **Memory Banks** sidebar to revisit previous scripts.
+### 3. Export
+*   Adjust the Voice Speed/Pitch sliders to your liking.
+*   Click **📦 ZIP** to download your entire project package.
 
 ## 🛠️ Tech Stack
 
-*   **Core:** HTML5, CSS3 (Variables + Flexbox), Vanilla JavaScript (ES6+).
+*   **Core:** HTML5, CSS3 (Variables + Flexbox/Grid), Vanilla JavaScript (ES6+).
+*   **Libraries:** `JSZip`, `FileSaver.js` (for client-side zipping).
 *   **AI Model:** Google Gemini 2.5 Flash (via REST API).
 *   **Storage:** `window.localStorage`.
-*   **Audio:** `window.speechSynthesis` API.
+*   **Audio:** `window.speechSynthesis` API (Sanitized & Queued).
 
 ## 📦 Deployment
 
