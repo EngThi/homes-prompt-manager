@@ -63,5 +63,22 @@ This project is static-ready. You can deploy it instantly on:
 *   [Netlify](https://netlify.com)
 *   [GitHub Pages](https://pages.github.com)
 
+## 💻 Development Tools
+
+This repository includes professional tools to maintain code quality:
+
+*   **Unit Tests:** Verify the text sanitization logic (TTS protection).
+    ```bash
+    node tests.js
+    ```
+*   **System Diagnostic:** Check environment health and file integrity.
+    ```bash
+    ./diagnose.sh
+    ```
+
+## 📄 License
+
+This project is open-source and available under the **MIT License**.
+
 ---
 *Developed by EngThi for the Hack Club Winter Hardware Wonderland.*
