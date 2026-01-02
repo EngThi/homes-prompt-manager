@@ -27,12 +27,12 @@
 
                 <div class="audio-settings">
                     <div class="setting-row">
-                        <label>SPEED: <span id="rateValue">1.1</span></label>
-                        <input type="range" id="rateInput" min="0.5" max="2.0" step="0.1" value="1.1">
+                        <label for="rateInput">SPEED: <span id="rateValue">1.1</span></label>
+                        <input type="range" id="rateInput" min="0.5" max="2.0" step="0.1" value="1.1" aria-label="Velocidade da voz">
                     </div>
                     <div class="setting-row">
-                        <label>PITCH: <span id="pitchValue">1.0</span></label>
-                        <input type="range" id="pitchInput" min="0.5" max="2.0" step="0.1" value="1.0">
+                        <label for="pitchInput">PITCH: <span id="pitchValue">1.0</span></label>
+                        <input type="range" id="pitchInput" min="0.5" max="2.0" step="0.1" value="1.0" aria-label="Tom da voz">
                     </div>
                 </div>
             </section>
@@ -81,10 +81,10 @@
                     <!-- AUDIO TOOLBAR -->
                     <div class="audio-toolbar">
                         <div class="audio-controls">
-                            <button id="playBtn" class="icon-btn">▶ PLAY</button>
-                            <button id="pauseBtn" class="icon-btn hidden">⏸ PAUSE</button>
-                            <button id="resumeBtn" class="icon-btn hidden">▶ RESUME</button>
-                            <button id="stopBtn" class="icon-btn hidden">⏹ STOP</button>
+                            <button id="playBtn" class="icon-btn" aria-label="Reproduzir áudio">▶ PLAY</button>
+                            <button id="pauseBtn" class="icon-btn hidden" aria-label="Pausar áudio">⏸ PAUSE</button>
+                            <button id="resumeBtn" class="icon-btn hidden" aria-label="Continuar áudio">▶ RESUME</button>
+                            <button id="stopBtn" class="icon-btn hidden" aria-label="Parar áudio">⏹ STOP</button>
                         </div>
                         <div class="audio-visualizer hidden" id="visualizer">
                             <div class="bar"></div><div class="bar"></div><div class="bar"></div>
