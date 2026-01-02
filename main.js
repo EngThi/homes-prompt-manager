@@ -22,6 +22,11 @@ document.addEventListener('DOMContentLoaded', () => {
     renderHistory();
     checkApiKey();
 
+    // TEST MODE: Enable manual input for audio testing
+    outputSection.classList.remove('hidden');
+    resultArea.removeAttribute('readonly');
+    resultArea.placeholder = "Cole ou digite um texto aqui para testar o áudio...";
+
     // --- EVENT LISTENERS ---
 
     apiKeyInput.addEventListener('change', () => {
@@ -176,7 +181,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         currentUtterance.onend = stopSpeaking;
         currentUtterance.onerror = (e) => {
-            console.error('Speech error:', e);
+            console.error('Speech error:', e.error);
             stopSpeaking();
         };
 
