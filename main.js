@@ -1,4 +1,48 @@
+/**
+ * @file main.js
+ * @description Core logic for HOMES: Neural Deck.
+ * @author EngThi
+ * @version 5.2.2
+ */
+
 document.addEventListener('DOMContentLoaded', () => {
+    
+    // --- CONFIGURATION OBJECT ---
+    const CONFIG = {
+        API_URL: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent',
+        MAX_HISTORY: 20,
+        TTS: {
+            DEFAULT_RATE: 1.1,
+            DEFAULT_PITCH: 1.0,
+            CHUNK_LIMIT: 200,
+            MOBILE_DELAY: 100
+        },
+        PROMPTS: {
+            SCRIPT: (topic) => `
+Função: Você é um roteirista profissional de canais Dark (Faceless).
+Objetivo: Criar um roteiro de vídeo curto (aprox. 60s) sobre: "${topic}".
+Formato Obrigatório:
+- Apenas o texto da narração (o que será falado).
+- NÃO inclua timestamps (ex: 0:00).
+- NÃO inclua instruções visuais ou sonoras (ex: [Sound], [Cut to]).
+- NÃO inclua rótulos de personagem (ex: Narrador:).
+- Use pontuação adequada para pausas dramáticas.
+- Estilo: Envolvente, direto e curioso.
+Idioma: Português do Brasil.`,
+            VISUALS: (script) => `
+Contexto: Tenho este roteiro de vídeo: "${script}"
+Tarefa: Crie 5 prompts de imagem detalhados e artísticos para o Midjourney/DALL-E que ilustrem as cenas principais deste roteiro.
+Estilo: Cyberpunk, Cinematic, Photorealistic, 8k.
+Formato: Apenas a lista dos 5 prompts, em Inglês, sem introduções.`
+        },
+        CLEANING_REGEX: {
+            META: /\[[\s\S]*?\]/g,
+            PARENS: /\([\s\S]*?\)/g,
+            LABELS: /(?:NARRATOR|VOICE OVER|VO|SCRIPT|Text Overlay|B-ROLL|SOUND):/gi,
+            SYMBOLS: /[^a-zA-Z0-9À-ÿ\s.,?!:;]/g
+        }
+    };
+
     // DOM Elements
     const apiKeyInput = document.getElementById('apiKeyInput');
     const topicInput = document.getElementById('topicInput');
@@ -39,6 +83,10 @@ document.addEventListener('DOMContentLoaded', () => {
     let lastChunk = ""; // Store last chunk for resume fallback
 
     // --- PERSISTENCE (V5.2) ---
+    
+    /**
+     * Saves user audio preferences and selected voice to localStorage.
+     */
     function savePreferences() {
         const prefs = {
             rate: rateInput.value,
@@ -49,6 +97,9 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.setItem('homes_prefs', JSON.stringify(prefs));
     }
 
+    /**
+     * Loads and applies saved preferences from localStorage.
+     */
     function loadPreferences() {
         const saved = localStorage.getItem('homes_prefs');
         if (!saved) return;
@@ -79,6 +130,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- INITIALIZATION & EVENTS ---
 
+    /**
+     * Populates the voice selection dropdown and triggers preference loading.
+     * Handles async voice loading issues in some browsers.
+     */
     function populateVoiceList() {
         voices = window.speechSynthesis.getVoices();
         voiceSelect.innerHTML = '';
@@ -93,9 +148,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const ptVoices = voices.filter(v => v.lang.includes('pt'));
         const otherVoices = voices.filter(v => !v.lang.includes('pt'));
         const sortedVoices = [...ptVoices, ...otherVoices];
-
-        // Map original indices back to the sorted list for correct selection? 
-        // Simpler approach: just list them as they come but pre-select PT.
         
         voices.forEach((voice, i) => {
             const option = document.createElement('option');
@@ -367,37 +419,35 @@ Formato: Apenas a lista dos 5 prompts, em Inglês (para melhor compatibilidade),
     // Initial Render
     renderHistory();
 
+    /**
+     * Sanitizes input text and breaks it into smaller chunks for the TTS engine.
+     * @param {string} text - The raw script text to be spoken.
+     */
     function speakText(text) {
         // Stop any current speech and clear queue
         stopSpeaking();
         isPaused = false;
 
         // --- RADICAL SANITIZATION (ALLOW-LIST) ---
-        // 1. First, remove known structural blocks (meta-data)
+        // Using central CONFIG regexes
         let processedText = text
-            .replace(/\[[\s\S]*?\]/g, '') // Remove [Square Brackets] content
-            .replace(/\([\s\S]*?\)/g, '') // Remove (Parentheses) content
-            .replace(/(?:NARRATOR|VOICE OVER|VO|SCRIPT|Text Overlay|B-ROLL|SOUND):/gi, '') // Remove labels
-            .replace(/---/g, ''); // Remove separators
+            .replace(CONFIG.CLEANING_REGEX.META, '') 
+            .replace(CONFIG.CLEANING_REGEX.PARENS, '') 
+            .replace(CONFIG.CLEANING_REGEX.LABELS, '') 
+            .replace(/---/g, ''); 
 
-        // 2. Then, keep ONLY alphanumeric and basic punctuation
-        // Allow: Portuguese letters (accents), numbers, spaces, and .,?!:;
-        let cleanText = processedText.replace(/[^a-zA-Z0-9À-ÿ\s.,?!:;]/g, ' ');
+        // Keep ONLY alphanumeric and basic punctuation
+        let cleanText = processedText.replace(CONFIG.CLEANING_REGEX.SYMBOLS, ' ');
 
-        // 3. Normalize whitespace
+        // Normalize whitespace
         cleanText = cleanText.replace(/\s+/g, ' ').trim();
 
-        console.log("Sanitized text for TTS:", cleanText.substring(0, 100) + "...");
-
         if (!cleanText || cleanText.length < 2) {
-            console.warn("Texto limpo muito curto ou vazio.");
+            console.warn("Clean text too short for TTS.");
             return;
         }
 
-        // --- AGGRESSIVE CHUNKING (HARD LIMIT) ---
-        // Some mobile engines crash with chunks > 200-300 chars.
-        // We will split by sentence, then check length.
-        
+        // --- AGGRESSIVE CHUNKING ---
         const sentences = cleanText.split(/(?<=[.?!])\s+/);
         speechQueue = [];
 
@@ -405,12 +455,11 @@ Formato: Apenas a lista dos 5 prompts, em Inglês (para melhor compatibilidade),
             sentence = sentence.trim();
             if (sentence.length === 0) return;
 
-            // If sentence is acceptable size, push it
-            if (sentence.length < 200) {
+            if (sentence.length < CONFIG.TTS.CHUNK_LIMIT) {
                 speechQueue.push(sentence);
             } else {
-                // If still too long, hard split by comma or spaces
-                const subChunks = sentence.match(/.{1,180}(?:\s|$)/g) || [sentence];
+                // Hard split by length if sentence is too large
+                const subChunks = sentence.match(new RegExp(`.{1,${CONFIG.TTS.CHUNK_LIMIT-20}}(?:\\s|$)`, 'g')) || [sentence];
                 subChunks.forEach(sub => speechQueue.push(sub.trim()));
             }
         });
@@ -419,6 +468,10 @@ Formato: Apenas a lista dos 5 prompts, em Inglês (para melhor compatibilidade),
         playNextChunk();
     }
 
+    /**
+     * Executes the next item in the speech queue.
+     * Handles browser/mobile specific delays and error recovery.
+     */
     function playNextChunk() {
         if (!isSpeakingQueue || speechQueue.length === 0) {
             stopSpeaking();
@@ -428,72 +481,55 @@ Formato: Apenas a lista dos 5 prompts, em Inglês (para melhor compatibilidade),
         const chunk = speechQueue.shift();
         lastChunk = chunk; // Save for resume fallback
         
-        // Final sanity check on chunk
         if (!chunk || chunk.length < 2) {
             playNextChunk();
             return;
         }
 
         currentUtterance = new SpeechSynthesisUtterance(chunk);
-        
-        // Force language
         currentUtterance.lang = 'pt-BR';
 
-        // Set selected voice explicitly
+        // Voice selection logic
         const selectedVoiceIndex = voiceSelect.value;
         if (selectedVoiceIndex !== "" && voices[selectedVoiceIndex]) {
             currentUtterance.voice = voices[selectedVoiceIndex];
         } else {
-            // Fallback: Try to find ANY pt-BR voice
             const ptVoice = voices.find(v => v.lang.includes('pt'));
-            if (ptVoice) {
-                currentUtterance.voice = ptVoice;
-            }
+            if (ptVoice) currentUtterance.voice = ptVoice;
         }
         
-        currentUtterance.rate = parseFloat(rateInput.value) || 1.1;
-        currentUtterance.pitch = parseFloat(pitchInput.value) || 1.0;
+        currentUtterance.rate = parseFloat(rateInput.value) || CONFIG.TTS.DEFAULT_RATE;
+        currentUtterance.pitch = parseFloat(pitchInput.value) || CONFIG.TTS.DEFAULT_PITCH;
         currentUtterance.volume = 1.0;
 
-        currentUtterance.onstart = () => {
-            updateAudioUI('playing');
-        };
-
-        currentUtterance.onend = () => {
-            if (isSpeakingQueue) {
-                playNextChunk();
-            }
-        };
+        currentUtterance.onstart = () => updateAudioUI('playing');
+        currentUtterance.onend = () => { if (isSpeakingQueue) playNextChunk(); };
 
         currentUtterance.onerror = (e) => {
-            // Check if this error is just a consequence of a manual cancel/pause
             if (e.error === 'interrupted' || e.error === 'canceled' || (e.error === 'synthesis-failed' && isPaused)) {
-                console.warn('Speech handled interruption:', e.error);
                 return;
             }
-
-            console.error('Speech synthesis error:', e.error, e);
-            // On mobile, sometimes a quick cancel/retry helps
             if (isSpeakingQueue && speechQueue.length > 0) {
                 window.speechSynthesis.cancel();
                 setTimeout(() => playNextChunk(), 200);
             } else {
-                // If not pausing and it's a real error, then stop
                 if (!isPaused) stopSpeaking();
             }
         };
 
-        // On mobile, it's critical to cancel before speaking to clear any hung states
         if (window.speechSynthesis.speaking || window.speechSynthesis.pending) {
             window.speechSynthesis.cancel();
             setTimeout(() => {
                 if (!isPaused && isSpeakingQueue) window.speechSynthesis.speak(currentUtterance);
-            }, 100);
+            }, CONFIG.TTS.MOBILE_DELAY);
         } else {
             window.speechSynthesis.speak(currentUtterance);
         }
     }
 
+    /**
+     * Cancels all active speech and resets the queue state.
+     */
     function stopSpeaking() {
         window.speechSynthesis.cancel();
         isPaused = false;
