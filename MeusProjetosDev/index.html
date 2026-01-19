@@ -21,6 +21,16 @@
                 <input type="password" id="apiKeyInput" placeholder="Gemini API Key...">
                 
                 <div style="margin-top: 15px;"></div>
+
+                <label>PERSONA DO ROTEIRISTA</label>
+                <select id="personaSelect" class="full-width">
+                    <option value="default">Padrão (Envolvente)</option>
+                    <option value="dramatic">Dramático</option>
+                    <option value="scientific">Científico</option>
+                    <option value="funny">Engraçado</option>
+                </select>
+
+                <div style="margin-top: 15px;"></div>
                 
                 <label>NARRATOR VOICE</label>
                 <select id="voiceSelect" class="full-width"></select>
@@ -111,6 +121,12 @@
             </footer>
         </div>
     </div>
+
+    <!-- Toast Notification -->
+    <div id="toastNotification" class="toast hidden">
+        <p id="toastMessage"></p>
+    </div>
+
     <script src="main.js"></script>
 </body>
 </html>

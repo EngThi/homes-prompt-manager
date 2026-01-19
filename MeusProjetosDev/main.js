@@ -17,9 +17,15 @@ document.addEventListener('DOMContentLoaded', () => {
             CHUNK_LIMIT: 200,
             MOBILE_DELAY: 100
         },
+        PERSONAS: {
+            default: "Você é um roteirista profissional de canais Dark (Faceless). Seu estilo é envolvente, direto e curioso.",
+            dramatic: "Você é um roteirista de tragédias e dramas intensos. Use pausas, suspense e uma linguagem emotiva para criar um clima de tensão e antecipação.",
+            scientific: "Você é um divulgador científico. Explique o tema de forma clara, precisa e baseada em fatos, como se estivesse apresentando um documentário.",
+            funny: "Você é um comediante e roteirista de stand-up. Aborde o tema com ironia, sarcasmo e piadas inesperadas, buscando um final engraçado."
+        },
         PROMPTS: {
-            SCRIPT: (topic) => `
-Função: Você é um roteirista profissional de canais Dark (Faceless).
+            SCRIPT: (topic, persona = 'default') => `
+Função: ${CONFIG.PERSONAS[persona]}
 Objetivo: Criar um roteiro de vídeo curto (aprox. 60s) sobre: "${topic}".
 Formato Obrigatório:
 - Apenas o texto da narração (o que será falado).
@@ -27,7 +33,6 @@ Formato Obrigatório:
 - NÃO inclua instruções visuais ou sonoras (ex: [Sound], [Cut to]).
 - NÃO inclua rótulos de personagem (ex: Narrador:).
 - Use pontuação adequada para pausas dramáticas.
-- Estilo: Envolvente, direto e curioso.
 Idioma: Português do Brasil.`,
             VISUALS: (script) => `
 Contexto: Tenho este roteiro de vídeo: "${script}"
@@ -66,6 +71,7 @@ Formato: Apenas a lista dos 5 prompts, em Inglês, sem introduções.`
     const visualSection = document.getElementById('visualSection');
     const visualContent = document.getElementById('visualContent');
     const copyVisualsBtn = document.getElementById('copyVisualsBtn');
+    const personaSelect = document.getElementById('personaSelect'); // Persona Selector
     
     // Audio Elements
     const playBtn = document.getElementById('playBtn');
@@ -73,6 +79,8 @@ Formato: Apenas a lista dos 5 prompts, em Inglês, sem introduções.`
     const resumeBtn = document.getElementById('resumeBtn');
     const stopBtn = document.getElementById('stopBtn');
     const visualizer = document.getElementById('visualizer');
+    const toastNotification = document.getElementById('toastNotification');
+    const toastMessage = document.getElementById('toastMessage');
 
     // State Management
     let history = JSON.parse(localStorage.getItem('homes_history')) || [];
@@ -82,6 +90,8 @@ Formato: Apenas a lista dos 5 prompts, em Inglês, sem introduções.`
     let speechQueue = [];
     let isSpeakingQueue = false;
     let lastChunk = ""; // Store last chunk for resume fallback
+    let originalTextForHighlight = ""; // Stores the cleaned text for highlighting
+    let currentHighlightIndex = 0; // Tracks the start index of the current spoken chunk in originalTextForHighlight
 
     // --- PERSISTENCE (V5.2) ---
     
@@ -130,6 +140,25 @@ Formato: Apenas a lista dos 5 prompts, em Inglês, sem introduções.`
     }
 
     // --- INITIALIZATION & EVENTS ---
+
+    /**
+     * Shows a toast notification.
+     * @param {string} message The message to display.
+     * @param {string} type 'info' or 'error'.
+     */
+    function showToast(message, type = 'info') {
+        toastMessage.textContent = message;
+        toastNotification.className = 'toast'; // Reset classes
+        toastNotification.classList.add('show');
+        if (type === 'error') {
+            toastNotification.classList.add('error');
+        }
+        
+        // The animation automatically hides it. But as a fallback:
+        setTimeout(() => {
+            toastNotification.classList.remove('show');
+        }, 3000);
+    }
 
     /**
      * Populates the voice selection dropdown and triggers preference loading.
@@ -191,7 +220,7 @@ Formato: Apenas a lista dos 5 prompts, em Inglês, sem introduções.`
         const topic = topicInput.value.trim();
 
         if (!apiKey || !topic) {
-            alert('Por favor, insira sua API Key e um Tópico.');
+            showToast('Por favor, insira sua API Key e um Tópico.', 'error');
             return;
         }
 
@@ -201,21 +230,11 @@ Formato: Apenas a lista dos 5 prompts, em Inglês, sem introduções.`
         outputSection.classList.add('hidden');
         stopSpeaking(); // Stop any audio
 
-        const prompt = `
-Função: Você é um roteirista profissional de canais Dark (Faceless).
-Objetivo: Criar um roteiro de vídeo curto (aprox. 60s) sobre: "${topic}".
-Formato Obrigatório:
-- Apenas o texto da narração (o que será falado).
-- NÃO inclua timestamps (ex: 0:00).
-- NÃO inclua instruções visuais ou sonoras (ex: [Sound], [Cut to]).
-- NÃO inclua rótulos de personagem (ex: Narrador:).
-- Use pontuação adequada para pausas dramáticas.
-- Estilo: Envolvente, direto e curioso.
-Idioma: Português do Brasil.
-`;
+        const selectedPersona = personaSelect.value;
+        const prompt = CONFIG.PROMPTS.SCRIPT(topic, selectedPersona);
 
         try {
-            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
+            const response = await fetch(`${CONFIG.API_URL}?key=${apiKey}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -223,13 +242,27 @@ Idioma: Português do Brasil.
                 })
             });
 
-            if (!response.ok) throw new Error('Falha na conexão com a API.');
+            if (!response.ok) {
+                // Try to get more specific error from API response
+                const errorData = await response.json().catch(() => null);
+                if (errorData && errorData.error) {
+                    throw new Error(`API Error: ${errorData.error.message} (Code: ${errorData.error.code})`);
+                }
+                throw new Error(`Falha na conexão com a API. Status: ${response.status}`);
+            }
 
             const data = await response.json();
             
-            if (data.error) throw new Error(data.error.message);
+            // Handle cases where the API returns a response but no candidates
+            if (!data.candidates || data.candidates.length === 0) {
+                 // Check for safety ratings (blocked content)
+                if (data.promptFeedback && data.promptFeedback.blockReason) {
+                    throw new Error(`Conteúdo bloqueado pela API. Motivo: ${data.promptFeedback.blockReason}`);
+                }
+                throw new Error('A API retornou uma resposta inválida ou vazia.');
+            }
             
-            let scriptText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+            const scriptText = data.candidates[0]?.content?.parts[0]?.text;
             
             if (!scriptText) throw new Error('Resposta vazia da IA.');
 
@@ -244,11 +277,11 @@ Idioma: Português do Brasil.
             addToHistory(topic, scriptText);
 
         } catch (error) {
-            alert(`Erro: ${error.message}`);
+            showToast(`Erro: ${error.message}`, 'error');
             console.error(error);
         } finally {
             generateBtn.disabled = false;
-            generateBtn.textContent = 'GERAR NEURAL DECK';
+            generateBtn.textContent = 'PROCESSAR ROTEIRO';
             generateBtn.classList.remove('processing'); // Remove pulse effect
         }
     });
@@ -264,7 +297,10 @@ Idioma: Português do Brasil.
     // --- NEW FEATURES V5.1 ---
 
     downloadBtn.addEventListener('click', () => {
-        if (!resultArea.value) return;
+        if (!resultArea.value) {
+            showToast("Nenhum roteiro gerado para baixar.", "error");
+            return;
+        };
         const blob = new Blob([resultArea.value], { type: 'text/plain' });
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -276,7 +312,7 @@ Idioma: Português do Brasil.
 
     downloadZipBtn.addEventListener('click', async () => {
         if (!resultArea.value) {
-            alert("Nenhum roteiro gerado para baixar.");
+            showToast("Nenhum roteiro gerado para baixar.", "error");
             return;
         }
 
@@ -310,7 +346,7 @@ GENERATED_BY: HOMES Neural Deck v5.1
             saveAs(content, `HOMES_PROJECT_${timestamp}.zip`);
         } catch (e) {
             console.error(e);
-            alert("Erro ao criar ZIP: " + e.message);
+            showToast("Erro ao criar ZIP: " + e.message, "error");
         } finally {
             downloadZipBtn.textContent = "📦 ZIP";
         }
@@ -353,7 +389,7 @@ Formato: Apenas a lista dos 5 prompts, em Inglês (para melhor compatibilidade),
             visualSection.scrollIntoView({ behavior: 'smooth' });
 
         } catch (error) {
-            alert('Erro ao gerar visuais: ' + error.message);
+            showToast('Erro ao gerar visuais: ' + error.message, 'error');
         } finally {
             visualBtn.disabled = false;
             visualBtn.textContent = '👁️ EXTRAIR PROMPTS VISUAIS (MIDJOURNEY)';
@@ -449,6 +485,9 @@ Formato: Apenas a lista dos 5 prompts, em Inglês (para melhor compatibilidade),
             return;
         }
 
+        originalTextForHighlight = cleanText; // Store for highlighting
+        currentHighlightIndex = 0; // Reset for new speech
+
         // --- AGGRESSIVE CHUNKING ---
         const sentences = cleanText.split(/(?<=[.?!])\s+/);
         speechQueue = [];
@@ -490,6 +529,28 @@ Formato: Apenas a lista dos 5 prompts, em Inglês (para melhor compatibilidade),
 
         currentUtterance = new SpeechSynthesisUtterance(chunk);
         currentUtterance.lang = 'pt-BR';
+
+        // Highlighting Logic
+        const startIndex = originalTextForHighlight.indexOf(chunk, currentHighlightIndex);
+        if (startIndex !== -1) {
+            const endIndex = startIndex + chunk.length;
+            resultArea.focus(); // Ensure textarea is focused for selection to be visible
+            resultArea.setSelectionRange(startIndex, endIndex);
+            currentHighlightIndex = endIndex + (originalTextForHighlight.substring(endIndex).match(/^\s*/)?.[0]?.length || 0); // Advance index past chunk and any trailing whitespace
+
+            // Scroll to keep selection in view (basic approach)
+            const lineHeight = parseInt(getComputedStyle(resultArea).lineHeight);
+            const scrollOffset = resultArea.scrollTop;
+            const elementOffset = resultArea.scrollHeight * (startIndex / originalTextForHighlight.length); // Approximate
+            
+            if (elementOffset < scrollOffset || elementOffset > scrollOffset + resultArea.clientHeight) {
+                 resultArea.scrollTop = elementOffset - resultArea.clientHeight / 2;
+            }
+        } else {
+             // If chunk not found (e.g., due to subtle cleaning differences), reset highlight
+            resultArea.setSelectionRange(0, 0);
+            currentHighlightIndex = 0;
+        }
 
         // Voice selection logic
         const selectedVoiceIndex = voiceSelect.value;
@@ -537,6 +598,8 @@ Formato: Apenas a lista dos 5 prompts, em Inglês (para melhor compatibilidade),
         isPaused = false;
         isSpeakingQueue = false;
         speechQueue = [];
+        resultArea.setSelectionRange(0, 0); // Clear selection
+        currentHighlightIndex = 0; // Reset highlight index
         updateAudioUI('stopped');
     }
 
@@ -640,3 +703,4 @@ Formato: Apenas a lista dos 5 prompts, em Inglês (para melhor compatibilidade),
         }
     }
 });
+var E = 
