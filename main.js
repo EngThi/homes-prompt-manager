@@ -93,6 +93,15 @@ Formato: Apenas a lista dos 5 prompts, em Inglês, sem introduções.`
     let originalTextForHighlight = ""; // Stores the cleaned text for highlighting
     let currentHighlightIndex = 0; // Tracks the start index of the current spoken chunk in originalTextForHighlight
 
+    // Web Audio API Visualizer State
+    let audioContext;
+    let analyser;
+    let visualizerDataArray;
+    let visualizerRequestAnimationFrameId;
+    let oscillator;
+    let gainNode;
+    
+
     // --- PERSISTENCE (V5.2) ---
     
     /**
