@@ -9,7 +9,15 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // --- CONFIGURATION OBJECT ---
     const CONFIG = {
-        API_URL: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent',
+        // Opção 1: Uso Direto (requer API Key no input)
+        API_URL: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent',
+        
+        // Opção 2: Backend Seguro (usado se não houver API Key)
+        FUNCTIONS_URL: {
+            SCRIPT: 'https://us-central1-homes-prompt-manager.cloudfunctions.net/gerarRoteiro',
+            VISUALS: 'https://us-central1-homes-prompt-manager.cloudfunctions.net/gerarPrompts'
+        },
+        
         MAX_HISTORY: 20,
         TTS: {
             DEFAULT_RATE: 1.1,
@@ -243,35 +251,46 @@ Formato: Apenas a lista dos 5 prompts, em Inglês, sem introduções.`
         const prompt = CONFIG.PROMPTS.SCRIPT(topic, selectedPersona);
 
         try {
-            const response = await fetch(`${CONFIG.API_URL}?key=${apiKey}`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    contents: [{ parts: [{ text: prompt }] }]
-                })
-            });
+            let scriptText;
 
-            if (!response.ok) {
-                // Try to get more specific error from API response
-                const errorData = await response.json().catch(() => null);
-                if (errorData && errorData.error) {
-                    throw new Error(`API Error: ${errorData.error.message} (Code: ${errorData.error.code})`);
-                }
-                throw new Error(`Falha na conexão com a API. Status: ${response.status}`);
-            }
+            if (apiKey) {
+                // MODO 1: API KEY DIRETA
+                const response = await fetch(`${CONFIG.API_URL}?key=${apiKey}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ role: "user", parts: [{ text: prompt }] }],
+                        generationConfig: {
+                            thinkingConfig: { thinkingLevel: "HIGH" } 
+                        },
+                        tools: [{ googleSearch: {} }]
+                    })
+                });
 
-            const data = await response.json();
-            
-            // Handle cases where the API returns a response but no candidates
-            if (!data.candidates || data.candidates.length === 0) {
-                 // Check for safety ratings (blocked content)
-                if (data.promptFeedback && data.promptFeedback.blockReason) {
-                    throw new Error(`Conteúdo bloqueado pela API. Motivo: ${data.promptFeedback.blockReason}`);
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => null);
+                    throw new Error(errorData?.error?.message || `Erro na API: ${response.status}`);
                 }
-                throw new Error('A API retornou uma resposta inválida ou vazia.');
+
+                const data = await response.json();
+                scriptText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+
+            } else {
+                // MODO 2: BACKEND FIREBASE (Sem chave exposta)
+                const response = await fetch(CONFIG.FUNCTIONS_URL.SCRIPT, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        topic: topic, 
+                        persona: selectedPersona 
+                    })
+                });
+
+                if (!response.ok) throw new Error(`Erro no Backend: ${response.status}`);
+
+                const data = await response.json();
+                scriptText = data.content; 
             }
-            
-            const scriptText = data.candidates[0]?.content?.parts[0]?.text;
             
             if (!scriptText) throw new Error('Resposta vazia da IA.');
 
@@ -381,16 +400,39 @@ Formato: Apenas a lista dos 5 prompts, em Inglês (para melhor compatibilidade),
 `;
 
         try {
-            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    contents: [{ parts: [{ text: prompt }] }]
-                })
-            });
+            let visuals;
 
-            const data = await response.json();
-            const visuals = data.candidates?.[0]?.content?.parts?.[0]?.text;
+            if (apiKey) {
+                // MODO 1: API KEY DIRETA
+                const response = await fetch(`${CONFIG.API_URL}?key=${apiKey}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ role: "user", parts: [{ text: prompt }] }],
+                        generationConfig: {
+                            thinkingConfig: { thinkingLevel: "HIGH" }
+                        }
+                    })
+                });
+
+                const data = await response.json();
+                visuals = data.candidates?.[0]?.content?.parts?.[0]?.text;
+
+            } else {
+                // MODO 2: BACKEND FIREBASE
+                const response = await fetch(CONFIG.FUNCTIONS_URL.VISUALS, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        script: currentScript 
+                    })
+                });
+
+                if (!response.ok) throw new Error(`Erro no Backend: ${response.status}`);
+
+                const data = await response.json();
+                visuals = data.content;
+            }
 
             visualContent.textContent = visuals || "Falha ao gerar visuais.";
             visualSection.classList.remove('hidden');
@@ -401,7 +443,7 @@ Formato: Apenas a lista dos 5 prompts, em Inglês (para melhor compatibilidade),
             showToast('Erro ao gerar visuais: ' + error.message, 'error');
         } finally {
             visualBtn.disabled = false;
-            visualBtn.textContent = '👁️ EXTRAIR PROMPTS VISUAIS (MIDJOURNEY)';
+            visualBtn.textContent = '👁️ EXTRAIR PROMPTS VISUAIS';
             visualBtn.classList.remove('processing');
         }
     });
@@ -702,12 +744,10 @@ Formato: Apenas a lista dos 5 prompts, em Inglês (para melhor compatibilidade),
     }
 
     function playHistoryItem(index) {
-        // Load item visually but DO NOT stop audio yet, as speakText will handle the transition
         loadHistoryItem(index, false);
         
         const item = history[index];
         if(item && item.script) {
-            // Call speakText immediately to preserve user gesture
             speakText(item.script);
         }
     }

@@ -71,3 +71,41 @@ REGRAS IMUTÁVEIS DE FORMATO:
     }
   });
 });
+
+exports.gerarPrompts = onRequest((req, res) => {
+  cors(req, res, async () => {
+    try {
+      const {script} = req.body;
+
+      if (!script) {
+        return res.status(400).json({
+          success: false,
+          message: "O parâmetro 'script' é obrigatório.",
+        });
+      }
+
+      const prompt = `
+Contexto: Tenho este roteiro de vídeo: "${script}"
+Tarefa: Crie 5 prompts de imagem detalhados e artísticos para o Midjourney/DALL-E, Nano Banana que ilustrem as cenas principais deste roteiro.
+Estilo: Cyberpunk, Cinematic, Photorealistic, 8k.
+Formato: Apenas a lista dos 5 prompts, em Inglês, sem introduções.
+`;
+
+      const result = await model.generateContent(prompt);
+      const response = await result.response;
+      const text = response.text();
+
+      res.status(200).json({
+        success: true,
+        content: text,
+        timestamp: new Date().toISOString(),
+      });
+    } catch (error) {
+      logger.error("Falha na geração de prompts:", error);
+      res.status(500).json({
+        success: false,
+        message: "Erro ao gerar prompts visuais.",
+      });
+    }
+  });
+});
