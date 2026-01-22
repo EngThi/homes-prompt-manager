@@ -1,0 +1,18 @@
+{
+    "name": "homes-functions",
+    "description": "Cloud Functions for H.O.M.E.S. Neural Deck",
+    "main": "index.js",
+    "dependencies": {
+      "firebase-admin": "^12.0.0",
+      "firebase-functions": "^5.0.0",
+      "cors": "^2.8.5",
+      "@google/generative-ai": "^0.11.0"
+    },
+    "devDependencies": {
+      "firebase-functions-test": "^3.1.0"
+    },
+    "engines": {
+      "node": "20"
+    },
+    "private": true
+  }

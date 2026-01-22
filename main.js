@@ -712,4 +712,3 @@ Formato: Apenas a lista dos 5 prompts, em Inglês (para melhor compatibilidade),
         }
     }
 });
-var E = 
