@@ -15,12 +15,12 @@ document.addEventListener('DOMContentLoaded', () => {
         // Opção 2: Backend Seguro (usado se não houver API Key)
         FUNCTIONS_URL: {
             // IDX-PROVIDED SECURE URLS FOR EMULATOR
-            SCRIPT: 'https://5002-firebase-homes-prompt-manager-1767267273628.cluster-hlmk2l2htragyudeyf6f3tzsi6.cloudworkstations.dev/homes-prompt-manager/us-central1/gerarRoteiro',
-            VISUALS: 'https://5002-firebase-homes-prompt-manager-1767267273628.cluster-hlmk2l2htragyudeyf6f3tzsi6.cloudworkstations.dev/homes-prompt-manager/us-central1/gerarPrompts'
+            // SCRIPT: 'https://5002-firebase-homes-prompt-manager-1767267273628.cluster-hlmk2l2htragyudeyf6f3tzsi6.cloudworkstations.dev/homes-prompt-manager/us-central1/gerarRoteiro',
+            // VISUALS: 'https://5002-firebase-homes-prompt-manager-1767267273628.cluster-hlmk2l2htragyudeyf6f3tzsi6.cloudworkstations.dev/homes-prompt-manager/us-central1/gerarPrompts'
             
             // PRODUCTION URLS
-            // SCRIPT: 'https://us-central1-homes-prompt-manager.cloudfunctions.net/gerarRoteiro',
-            // VISUALS: 'https://us-central1-homes-prompt-manager.cloudfunctions.net/gerarPrompts'
+            SCRIPT: 'https://us-central1-homes-prompt-manager.cloudfunctions.net/gerarRoteiro',
+            VISUALS: 'https://us-central1-homes-prompt-manager.cloudfunctions.net/gerarPrompts'
         },
         
         MAX_HISTORY: 20,
