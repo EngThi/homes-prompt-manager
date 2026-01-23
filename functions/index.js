@@ -25,6 +25,7 @@ exports.gerarRoteiro = onRequest((req, res) => {
   // Habilita o CORS para a função
   cors(req, res, async () => {
     try {
+      logger.info("Body recebido:", req.body); // LOG PARA DEBUG
       const {topic, persona} = req.body;
       // Validação da entrada
       if (!topic) {
