@@ -274,7 +274,7 @@ Formato: Apenas a lista dos 5 prompts, em Inglês, sem introduções.`
                 const response = await fetch(CONFIG.FUNCTIONS_URL.SCRIPT, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    credentials: 'include', // Tenta enviar cookies de autenticação do IDX
+                    // credentials removed for production CORS compatibility
                     body: JSON.stringify({ 
                         topic: topic, 
                         persona: selectedPersona 
@@ -406,7 +406,7 @@ GENERATED_BY: HOMES Neural Deck v5.2
                 const response = await fetch(CONFIG.FUNCTIONS_URL.VISUALS, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    credentials: 'include',
+                    // credentials removed
                     body: JSON.stringify({ 
                         script: currentScript 
                     })
