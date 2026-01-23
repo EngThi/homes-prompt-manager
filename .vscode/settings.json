@@ -1,3 +1,17 @@
 {
-  "IDX.agenticWorkspace": true
+  "IDX.agenticWorkspace": true,
+  "portsAttributes": {
+    "5002": {
+      "label": "functions",
+      "visibility": "public"
+    },
+    "4001": {
+      "label": "emulator_ui",
+      "visibility": "public"
+    },
+    "4401": {
+      "label": "hub",
+      "visibility": "public"
+    }
+  }
 }

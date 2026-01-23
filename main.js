@@ -2,7 +2,7 @@
  * @file main.js
  * @description Core logic for HOMES: Neural Deck.
  * @author EngThi
- * @version 5.2.2
+ * @version 5.2.6
  */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -10,12 +10,17 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- CONFIGURATION OBJECT ---
     const CONFIG = {
         // Opção 1: Uso Direto (requer API Key no input)
-        API_URL: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent',
+        API_URL: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent',
         
         // Opção 2: Backend Seguro (usado se não houver API Key)
         FUNCTIONS_URL: {
-            SCRIPT: 'https://us-central1-homes-prompt-manager.cloudfunctions.net/gerarRoteiro',
-            VISUALS: 'https://us-central1-homes-prompt-manager.cloudfunctions.net/gerarPrompts'
+            // IDX-PROVIDED SECURE URLS FOR EMULATOR
+            SCRIPT: 'https://5002-firebase-homes-prompt-manager-1767267273628.cluster-hlmk2l2htragyudeyf6f3tzsi6.cloudworkstations.dev/homes-prompt-manager/us-central1/gerarRoteiro',
+            VISUALS: 'https://5002-firebase-homes-prompt-manager-1767267273628.cluster-hlmk2l2htragyudeyf6f3tzsi6.cloudworkstations.dev/homes-prompt-manager/us-central1/gerarPrompts'
+            
+            // PRODUCTION URLS
+            // SCRIPT: 'https://us-central1-homes-prompt-manager.cloudfunctions.net/gerarRoteiro',
+            // VISUALS: 'https://us-central1-homes-prompt-manager.cloudfunctions.net/gerarPrompts'
         },
         
         MAX_HISTORY: 20,
@@ -34,7 +39,7 @@ document.addEventListener('DOMContentLoaded', () => {
         PROMPTS: {
             SCRIPT: (topic, persona = 'default') => `
 Função: ${CONFIG.PERSONAS[persona]}
-Objetivo: Criar um roteiro de vídeo curto (aprox. 60s) sobre: "${topic}".
+Objetivo: Criar um roteiro de vídeo curto (aprox. 60s) sobre: \"${topic}\".
 Formato Obrigatório:
 - Apenas o texto da narração (o que será falado).
 - NÃO inclua timestamps (ex: 0:00).
@@ -43,7 +48,7 @@ Formato Obrigatório:
 - Use pontuação adequada para pausas dramáticas.
 Idioma: Português do Brasil.`,
             VISUALS: (script) => `
-Contexto: Tenho este roteiro de vídeo: "${script}"
+Contexto: Tenho este roteiro de vídeo: \"${script}\"
 Tarefa: Crie 5 prompts de imagem detalhados e artísticos para o Midjourney/DALL-E que ilustrem as cenas principais deste roteiro.
 Estilo: Cyberpunk, Cinematic, Photorealistic, 8k.
 Formato: Apenas a lista dos 5 prompts, em Inglês, sem introduções.`
@@ -119,7 +124,6 @@ Formato: Apenas a lista dos 5 prompts, em Inglês, sem introduções.`
         const prefs = {
             rate: rateInput.value,
             pitch: pitchInput.value,
-            // Save the Voice Name/URI, not just the index (which can change)
             voiceURI: voices[voiceSelect.value]?.voiceURI
         };
         localStorage.setItem('homes_prefs', JSON.stringify(prefs));
@@ -144,7 +148,6 @@ Formato: Apenas a lista dos 5 prompts, em Inglês, sem introduções.`
                 pitchValue.textContent = prefs.pitch;
             }
             
-            // Restore voice by URI match (more robust than index)
             if (prefs.voiceURI && voices.length > 0) {
                 const index = voices.findIndex(v => v.voiceURI === prefs.voiceURI);
                 if (index !== -1) {
@@ -158,11 +161,6 @@ Formato: Apenas a lista dos 5 prompts, em Inglês, sem introduções.`
 
     // --- INITIALIZATION & EVENTS ---
 
-    /**
-     * Shows a toast notification.
-     * @param {string} message The message to display.
-     * @param {string} type 'info' or 'error'.
-     */
     function showToast(message, type = 'info') {
         toastMessage.textContent = message;
         toastNotification.className = 'toast'; // Reset classes
@@ -171,27 +169,20 @@ Formato: Apenas a lista dos 5 prompts, em Inglês, sem introduções.`
             toastNotification.classList.add('error');
         }
         
-        // The animation automatically hides it. But as a fallback:
         setTimeout(() => {
             toastNotification.classList.remove('show');
         }, 3000);
     }
 
-    /**
-     * Populates the voice selection dropdown and triggers preference loading.
-     * Handles async voice loading issues in some browsers.
-     */
     function populateVoiceList() {
         voices = window.speechSynthesis.getVoices();
         voiceSelect.innerHTML = '';
         
         if (voices.length === 0) {
-            // Retry logic for mobile/chrome where voices load asynchronously
             setTimeout(populateVoiceList, 100);
             return;
         }
 
-        // Sort voices to prioritize "Google Português" or generic Portuguese
         const ptVoices = voices.filter(v => v.lang.includes('pt'));
         const otherVoices = voices.filter(v => !v.lang.includes('pt'));
         const sortedVoices = [...ptVoices, ...otherVoices];
@@ -199,7 +190,7 @@ Formato: Apenas a lista dos 5 prompts, em Inglês, sem introduções.`
         voices.forEach((voice, i) => {
             const option = document.createElement('option');
             option.textContent = `${voice.name} (${voice.lang})`;
-            option.value = i; // Use original index from 'voices' array
+            option.value = i;
             
             if (voice.lang === 'pt-BR' || voice.lang === 'pt_BR') {
                 if (!voiceSelect.value) option.selected = true;
@@ -208,7 +199,6 @@ Formato: Apenas a lista dos 5 prompts, em Inglês, sem introduções.`
             voiceSelect.appendChild(option);
         });
         
-        // Load saved settings AFTER populating voices
         loadPreferences();
     }
 
@@ -217,7 +207,6 @@ Formato: Apenas a lista dos 5 prompts, em Inglês, sem introduções.`
         speechSynthesis.onvoiceschanged = populateVoiceList;
     }
 
-    // Slider Listeners
     rateInput.addEventListener('input', () => {
         rateValue.textContent = rateInput.value;
         savePreferences();
@@ -236,16 +225,21 @@ Formato: Apenas a lista dos 5 prompts, em Inglês, sem introduções.`
         const apiKey = apiKeyInput.value.trim();
         const topic = topicInput.value.trim();
 
-        if (!apiKey || !topic) {
-            showToast('Por favor, insira sua API Key e um Tópico.', 'error');
+        if (!topic) {
+            showToast('Por favor, insira um Tópico para o roteiro.', 'error');
+            return;
+        }
+        
+        if (!apiKey && !CONFIG.FUNCTIONS_URL.SCRIPT) {
+            showToast('Insira sua API Key ou configure um endpoint de backend.', 'error');
             return;
         }
 
         generateBtn.disabled = true;
         generateBtn.textContent = 'PROCESSANDO...';
-        generateBtn.classList.add('processing'); // Add pulse effect
+        generateBtn.classList.add('processing');
         outputSection.classList.add('hidden');
-        stopSpeaking(); // Stop any audio
+        stopSpeaking();
 
         const selectedPersona = personaSelect.value;
         const prompt = CONFIG.PROMPTS.SCRIPT(topic, selectedPersona);
@@ -254,14 +248,14 @@ Formato: Apenas a lista dos 5 prompts, em Inglês, sem introduções.`
             let scriptText;
 
             if (apiKey) {
-                // MODO 1: API KEY DIRETA
+                // MODE 1: Direct API Call (Client-side)
                 const response = await fetch(`${CONFIG.API_URL}?key=${apiKey}`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         contents: [{ role: "user", parts: [{ text: prompt }] }],
                         generationConfig: {
-                            thinkingConfig: { thinkingLevel: "HIGH" } 
+                            maxOutputTokens: 8192,
                         },
                         tools: [{ googleSearch: {} }]
                     })
@@ -276,7 +270,7 @@ Formato: Apenas a lista dos 5 prompts, em Inglês, sem introduções.`
                 scriptText = data.candidates?.[0]?.content?.parts?.[0]?.text;
 
             } else {
-                // MODO 2: BACKEND FIREBASE (Sem chave exposta)
+                // MODE 2: Secure Backend Call (Firebase)
                 const response = await fetch(CONFIG.FUNCTIONS_URL.SCRIPT, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -289,15 +283,15 @@ Formato: Apenas a lista dos 5 prompts, em Inglês, sem introduções.`
                 if (!response.ok) throw new Error(`Erro no Backend: ${response.status}`);
 
                 const data = await response.json();
+                if (!data.success) throw new Error(data.message || 'Erro desconhecido no backend.');
                 scriptText = data.content; 
             }
             
-            if (!scriptText) throw new Error('Resposta vazia da IA.');
+            if (!scriptText) throw new Error('A IA retornou uma resposta vazia.');
 
             resultArea.value = scriptText;
             outputSection.classList.remove('hidden');
             
-            // Reset and show Visual Button
             visualSection.classList.add('hidden');
             visualContent.textContent = '';
             visualBtn.classList.remove('hidden');
@@ -310,7 +304,7 @@ Formato: Apenas a lista dos 5 prompts, em Inglês, sem introduções.`
         } finally {
             generateBtn.disabled = false;
             generateBtn.textContent = 'PROCESSAR ROTEIRO';
-            generateBtn.classList.remove('processing'); // Remove pulse effect
+            generateBtn.classList.remove('processing');
         }
     });
 
@@ -347,15 +341,12 @@ Formato: Apenas a lista dos 5 prompts, em Inglês, sem introduções.`
         const zip = new JSZip();
         const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
         
-        // 1. Script File
         zip.file("01_roteiro_narracao.txt", resultArea.value);
 
-        // 2. Visual Prompts (if any)
         if (visualContent.textContent && !visualSection.classList.contains('hidden')) {
             zip.file("02_prompts_midjourney.txt", visualContent.textContent);
         }
 
-        // 3. Production Info
         const info = `
 PROJECT METADATA
 ----------------
@@ -363,11 +354,10 @@ TOPIC: ${topicInput.value}
 DATE: ${new Date().toLocaleString()}
 VOICE_SPEED: ${rateInput.value}
 VOICE_PITCH: ${pitchInput.value}
-GENERATED_BY: HOMES Neural Deck v5.1
+GENERATED_BY: HOMES Neural Deck v5.2
         `.trim();
         zip.file("03_info_producao.txt", info);
 
-        // Generate and Download
         try {
             downloadZipBtn.textContent = "COMPACTANDO...";
             const content = await zip.generateAsync({ type: "blob" });
@@ -390,27 +380,19 @@ GENERATED_BY: HOMES Neural Deck v5.1
         visualBtn.textContent = 'ANALISANDO CENA...';
         visualBtn.classList.add('processing');
 
-        const prompt = `
-Contexto: Tenho este roteiro de vídeo:
-"${currentScript}"
-
-Tarefa: Crie 5 prompts de imagem detalhados e artísticos para o Midjourney/DALL-E que ilustrem as cenas principais deste roteiro.
-Estilo: Cyberpunk, Cinematic, Photorealistic, 8k.
-Formato: Apenas a lista dos 5 prompts, em Inglês (para melhor compatibilidade), sem introduções.
-`;
-
         try {
             let visuals;
 
             if (apiKey) {
-                // MODO 1: API KEY DIRETA
+                // MODE 1: Direct API Call
+                const prompt = CONFIG.PROMPTS.VISUALS(currentScript);
                 const response = await fetch(`${CONFIG.API_URL}?key=${apiKey}`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         contents: [{ role: "user", parts: [{ text: prompt }] }],
                         generationConfig: {
-                            thinkingConfig: { thinkingLevel: "HIGH" }
+                           maxOutputTokens: 8192,
                         }
                     })
                 });
@@ -419,7 +401,7 @@ Formato: Apenas a lista dos 5 prompts, em Inglês (para melhor compatibilidade),
                 visuals = data.candidates?.[0]?.content?.parts?.[0]?.text;
 
             } else {
-                // MODO 2: BACKEND FIREBASE
+                // MODE 2: Backend Firebase
                 const response = await fetch(CONFIG.FUNCTIONS_URL.VISUALS, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -431,12 +413,12 @@ Formato: Apenas a lista dos 5 prompts, em Inglês (para melhor compatibilidade),
                 if (!response.ok) throw new Error(`Erro no Backend: ${response.status}`);
 
                 const data = await response.json();
+                if (!data.success) throw new Error(data.message || 'Erro desconhecido no backend.');
                 visuals = data.content;
             }
 
             visualContent.textContent = visuals || "Falha ao gerar visuais.";
             visualSection.classList.remove('hidden');
-            // Scroll to visuals
             visualSection.scrollIntoView({ behavior: 'smooth' });
 
         } catch (error) {
@@ -451,11 +433,9 @@ Formato: Apenas a lista dos 5 prompts, em Inglês (para melhor compatibilidade),
     copyVisualsBtn.addEventListener('click', () => {
         navigator.clipboard.writeText(visualContent.textContent);
         const original = copyVisualsBtn.innerText;
-        copyVisualsBtn.innerText = 'DONE';
+        copyVisualsBtn.innerText = 'COPIADO!';
         setTimeout(() => copyVisualsBtn.innerText = original, 2000);
     });
-
-    // -------------------------
 
     clearHistoryBtn.addEventListener('click', () => {
         if (confirm('Apagar todo o histórico local?')) {
@@ -471,33 +451,21 @@ Formato: Apenas a lista dos 5 prompts, em Inglês (para melhor compatibilidade),
     });
 
     pauseBtn.addEventListener('click', () => {
-        // Queue-based Pause:
-        // 1. Stop actual audio to free up resources
         window.speechSynthesis.cancel();
-        
-        // 2. Mark state as paused
         isPaused = true;
-        isSpeakingQueue = false; // Stop auto-advancing
-        
-        // 3. Put the current chunk back at the START of the queue
-        // so it plays again from the beginning when resumed.
+        isSpeakingQueue = false;
         if (lastChunk) {
             speechQueue.unshift(lastChunk);
         }
-        
         updateAudioUI('paused');
     });
 
     resumeBtn.addEventListener('click', () => {
-        // Queue-based Resume:
         if (isPaused) {
             isPaused = false;
-            isSpeakingQueue = true; // Re-enable auto-advance
-            
-            // Just play whatever is at the head of the queue (which is our saved chunk)
+            isSpeakingQueue = true;
             playNextChunk();
         } else {
-            // If somehow queue is empty or stopped, restart
             if (resultArea.value) speakText(resultArea.value);
         }
     });
@@ -507,28 +475,18 @@ Formato: Apenas a lista dos 5 prompts, em Inglês (para melhor compatibilidade),
     // Initial Render
     renderHistory();
 
-    /**
-     * Sanitizes input text and breaks it into smaller chunks for the TTS engine.
-     * @param {string} text - The raw script text to be spoken.
-     */
     function speakText(text) {
-        // Stop any current speech and clear queue
         stopSpeaking();
         isPaused = false;
 
-        // --- RADICAL SANITIZATION (ALLOW-LIST) ---
-        // Using central CONFIG regexes
         let processedText = text
             .replace(CONFIG.CLEANING_REGEX.META, '') 
             .replace(CONFIG.CLEANING_REGEX.PARENS, '') 
-            .replace(CONFIG.CLEANING_REGEX.TIMESTAMPS, '') // Remove timestamps explicitly
+            .replace(CONFIG.CLEANING_REGEX.TIMESTAMPS, '')
             .replace(CONFIG.CLEANING_REGEX.LABELS, '') 
             .replace(/---/g, ''); 
 
-        // Keep ONLY alphanumeric and basic punctuation
         let cleanText = processedText.replace(CONFIG.CLEANING_REGEX.SYMBOLS, ' ');
-
-        // Normalize whitespace
         cleanText = cleanText.replace(/\s+/g, ' ').trim();
 
         if (!cleanText || cleanText.length < 2) {
@@ -536,10 +494,9 @@ Formato: Apenas a lista dos 5 prompts, em Inglês (para melhor compatibilidade),
             return;
         }
 
-        originalTextForHighlight = cleanText; // Store for highlighting
-        currentHighlightIndex = 0; // Reset for new speech
+        originalTextForHighlight = cleanText;
+        currentHighlightIndex = 0;
 
-        // --- AGGRESSIVE CHUNKING ---
         const sentences = cleanText.split(/(?<=[.?!])\s+/);
         speechQueue = [];
 
@@ -550,7 +507,6 @@ Formato: Apenas a lista dos 5 prompts, em Inglês (para melhor compatibilidade),
             if (sentence.length < CONFIG.TTS.CHUNK_LIMIT) {
                 speechQueue.push(sentence);
             } else {
-                // Hard split by length if sentence is too large
                 const subChunks = sentence.match(new RegExp(`.{1,${CONFIG.TTS.CHUNK_LIMIT-20}}(?:\\s|$)`, 'g')) || [sentence];
                 subChunks.forEach(sub => speechQueue.push(sub.trim()));
             }
@@ -560,10 +516,6 @@ Formato: Apenas a lista dos 5 prompts, em Inglês (para melhor compatibilidade),
         playNextChunk();
     }
 
-    /**
-     * Executes the next item in the speech queue.
-     * Handles browser/mobile specific delays and error recovery.
-     */
     function playNextChunk() {
         if (!isSpeakingQueue || speechQueue.length === 0) {
             stopSpeaking();
@@ -571,7 +523,7 @@ Formato: Apenas a lista dos 5 prompts, em Inglês (para melhor compatibilidade),
         }
 
         const chunk = speechQueue.shift();
-        lastChunk = chunk; // Save for resume fallback
+        lastChunk = chunk;
         
         if (!chunk || chunk.length < 2) {
             playNextChunk();
@@ -581,29 +533,25 @@ Formato: Apenas a lista dos 5 prompts, em Inglês (para melhor compatibilidade),
         currentUtterance = new SpeechSynthesisUtterance(chunk);
         currentUtterance.lang = 'pt-BR';
 
-        // Highlighting Logic
         const startIndex = originalTextForHighlight.indexOf(chunk, currentHighlightIndex);
         if (startIndex !== -1) {
             const endIndex = startIndex + chunk.length;
-            resultArea.focus(); // Ensure textarea is focused for selection to be visible
+            resultArea.focus();
             resultArea.setSelectionRange(startIndex, endIndex);
-            currentHighlightIndex = endIndex + (originalTextForHighlight.substring(endIndex).match(/^\s*/)?.[0]?.length || 0); // Advance index past chunk and any trailing whitespace
+            currentHighlightIndex = endIndex + (originalTextForHighlight.substring(endIndex).match(/^\s*/)?.[0]?.length || 0);
 
-            // Scroll to keep selection in view (basic approach)
             const lineHeight = parseInt(getComputedStyle(resultArea).lineHeight);
             const scrollOffset = resultArea.scrollTop;
-            const elementOffset = resultArea.scrollHeight * (startIndex / originalTextForHighlight.length); // Approximate
+            const elementOffset = resultArea.scrollHeight * (startIndex / originalTextForHighlight.length);
             
             if (elementOffset < scrollOffset || elementOffset > scrollOffset + resultArea.clientHeight) {
                  resultArea.scrollTop = elementOffset - resultArea.clientHeight / 2;
             }
         } else {
-             // If chunk not found (e.g., due to subtle cleaning differences), reset highlight
             resultArea.setSelectionRange(0, 0);
             currentHighlightIndex = 0;
         }
 
-        // Voice selection logic
         const selectedVoiceIndex = voiceSelect.value;
         if (selectedVoiceIndex !== "" && voices[selectedVoiceIndex]) {
             currentUtterance.voice = voices[selectedVoiceIndex];
@@ -641,21 +589,17 @@ Formato: Apenas a lista dos 5 prompts, em Inglês (para melhor compatibilidade),
         }
     }
 
-    /**
-     * Cancels all active speech and resets the queue state.
-     */
     function stopSpeaking() {
         window.speechSynthesis.cancel();
         isPaused = false;
         isSpeakingQueue = false;
         speechQueue = [];
-        resultArea.setSelectionRange(0, 0); // Clear selection
-        currentHighlightIndex = 0; // Reset highlight index
+        resultArea.setSelectionRange(0, 0);
+        currentHighlightIndex = 0;
         updateAudioUI('stopped');
     }
 
     function updateAudioUI(state) {
-        // Hide all first
         playBtn.classList.add('hidden');
         pauseBtn.classList.add('hidden');
         resumeBtn.classList.add('hidden');
@@ -680,7 +624,7 @@ Formato: Apenas a lista dos 5 prompts, em Inglês (para melhor compatibilidade),
         const timestamp = new Date().toLocaleTimeString();
         const newItem = { topic, script, timestamp };
         history.unshift(newItem);
-        if (history.length > 20) history.pop();
+        if (history.length > CONFIG.MAX_HISTORY) history.pop();
         saveHistory();
         renderHistory();
     }
@@ -693,7 +637,7 @@ Formato: Apenas a lista dos 5 prompts, em Inglês (para melhor compatibilidade),
         historyList.innerHTML = '';
         
         if (history.length === 0) {
-            historyList.innerHTML = '<li class="history-item placeholder">Nenhum dado arquivado.</li>';
+            historyList.innerHTML = '<li class="history-item placeholder">Nenhum item no histórico.</li>';
             return;
         }
 
@@ -709,13 +653,11 @@ Formato: Apenas a lista dos 5 prompts, em Inglês (para melhor compatibilidade),
                 <button class="mini-play-btn" title="Reproduzir agora">▶</button>
             `;
             
-            // Load item on main click
             li.onclick = (e) => {
                 if (e.target.closest('.mini-play-btn')) return;
                 loadHistoryItem(index);
             };
 
-            // Play item specifically
             const miniPlayBtn = li.querySelector('.mini-play-btn');
             miniPlayBtn.onclick = (e) => {
                 e.stopPropagation();
@@ -727,7 +669,6 @@ Formato: Apenas a lista dos 5 prompts, em Inglês (para melhor compatibilidade),
     }
 
     function loadHistoryItem(index, shouldStopAudio = true) {
-        // Stop audio if playing (default behavior)
         if (shouldStopAudio) {
             stopSpeaking();
         }
