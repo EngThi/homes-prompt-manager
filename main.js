@@ -19,7 +19,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // VISUALS: 'https://5002-firebase-homes-prompt-manager-1767267273628.cluster-hlmk2l2htragyudeyf6f3tzsi6.cloudworkstations.dev/homes-prompt-manager/us-central1/gerarPrompts'
             
             // PRODUCTION URLS
-            SCRIPT: 'https://gerarroteiro-lzpaoyvbxq-uc.a.run.app',
+            SCRIPT: 'https://gerarroteiro-lzpaoyvbxq-uc.a.run.app/gerarRoteiro',
             VISUALS: 'https://us-central1-homes-prompt-manager.cloudfunctions.net/gerarPrompts'
         },
         
